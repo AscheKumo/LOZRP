@@ -6,7 +6,8 @@ This is a single-page, offline-friendly, static HTML character sheet inspired by
 
 - Open `index.html` in your browser.
 - Fill in fields.
-- Use **Save** / **Load** (stored in your browser via localStorage).
+- Changes are saved automatically (localStorage autosave) and loaded on refresh.
+- You can still use **Save** / **Load** manually if you want.
 - Use **Export JSON** to download a backup; **Import JSON** to restore.
 
 ## Theme / Background

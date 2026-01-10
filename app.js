@@ -1,6 +1,8 @@
 (() => {
   const STORAGE_KEY = "lozrp.sheet.v1";
 
+  let lastStorageErrorAt = 0;
+
   /** @type {() => void} */
   let refreshPreview = () => {};
 
@@ -103,6 +105,7 @@
     filterItem,
     onEditItem,
     legacyParse,
+    onChange,
   }) {
     /** @type {number | null} */
     let editingIndex = null;
@@ -122,6 +125,7 @@
     const write = (items) => {
       if (!dataEl) return;
       dataEl.value = JSON.stringify(items, null, 2);
+      onChange?.();
     };
 
     const clearBuilder = () => {
@@ -231,19 +235,29 @@
     };
   }
 
-  function saveToStorage() {
+  function saveToStorage({ silent = false } = {}) {
     const data = readSheet();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      savedAt: new Date().toISOString(),
-      data
-    }));
-    setStatus("Saved.");
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        savedAt: new Date().toISOString(),
+        data,
+      }));
+      if (!silent) setStatus("Saved.");
+      return true;
+    } catch (e) {
+      const now = Date.now();
+      if (now - lastStorageErrorAt > 2500) {
+        lastStorageErrorAt = now;
+        setStatus("Autosave failed (storage full). Try a smaller portrait image.", "error");
+      }
+      return false;
+    }
   }
 
-  function loadFromStorage() {
+  function loadFromStorage({ silent = false } = {}) {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      setStatus("Nothing saved yet.");
+      if (!silent) setStatus("Nothing saved yet.");
       return;
     }
 
@@ -257,14 +271,16 @@
       syncFeaturesUI();
       syncPortraitUI();
       syncHeartsUI();
-      setStatus("Loaded.");
+      syncStaminaUI();
+      syncHeaderAbilitiesUI();
+      if (!silent) setStatus("Loaded.");
     } catch {
-      setStatus("Save data corrupted.", "error");
+      if (!silent) setStatus("Save data corrupted.", "error");
     }
   }
 
   function resetSheet() {
-    const ok = window.confirm("Reset all fields? (This does not clear your saved copy unless you save again.)");
+    const ok = window.confirm("Reset all fields? (This will also update autosave.)");
     if (!ok) return;
     writeSheet({});
     refreshPreview();
@@ -274,6 +290,9 @@
     syncFeaturesUI();
     syncPortraitUI();
     syncHeartsUI();
+    syncStaminaUI();
+    syncHeaderAbilitiesUI();
+    saveToStorage({ silent: true });
     setStatus("Reset.");
   }
 
@@ -324,6 +343,9 @@
     syncFeaturesUI();
     syncPortraitUI();
     syncHeartsUI();
+    syncStaminaUI();
+    syncHeaderAbilitiesUI();
+    saveToStorage({ silent: true });
     setStatus("Imported.");
   }
 
@@ -338,6 +360,58 @@
     btnLoad?.addEventListener("click", loadFromStorage);
     btnReset?.addEventListener("click", resetSheet);
     btnExport?.addEventListener("click", exportJson);
+
+    // Autosave: debounce changes so edits persist immediately without spamming localStorage.
+    let autosaveTimer = 0;
+    const scheduleAutosave = () => {
+      window.clearTimeout(autosaveTimer);
+      autosaveTimer = window.setTimeout(() => saveToStorage({ silent: true }), 250);
+    };
+
+    const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(new Error("read failed"));
+      reader.readAsDataURL(file);
+    });
+
+    const compressDataUrl = async (dataUrl, { maxDim = 640, quality = 0.85 } = {}) => {
+      // Downscale to keep localStorage usage reasonable.
+      // Uses JPEG for good compression; fallback to original on failure.
+      const img = new Image();
+      img.decoding = "async";
+      img.src = dataUrl;
+
+      await new Promise((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("image decode failed"));
+      });
+
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      if (!w || !h) return dataUrl;
+
+      const scale = Math.min(1, maxDim / Math.max(w, h));
+      const outW = Math.max(1, Math.round(w * scale));
+      const outH = Math.max(1, Math.round(h * scale));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = outW;
+      canvas.height = outH;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return dataUrl;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(img, 0, 0, outW, outH);
+
+      try {
+        const jpeg = canvas.toDataURL("image/jpeg", quality);
+        return jpeg || dataUrl;
+      } catch {
+        return dataUrl;
+      }
+    };
 
     // Tabs
     const tabButtons = Array.from(document.querySelectorAll(".tab-btn[data-tab]"));
@@ -391,13 +465,9 @@
         return;
       }
 
-      // Read as data URL. (Kept simple; can be large if you choose a huge image.)
-      const dataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result ?? ""));
-        reader.onerror = () => reject(new Error("read failed"));
-        reader.readAsDataURL(file);
-      }).catch(() => "");
+      // Read and compress as data URL to ensure it persists in localStorage.
+      const original = await readFileAsDataUrl(file).catch(() => "");
+      const dataUrl = original ? await compressDataUrl(original, { maxDim: 640, quality: 0.85 }) : "";
 
       if (!dataUrl) {
         setStatus("Failed to load image.", "error");
@@ -407,6 +477,9 @@
       if (profileImageData) profileImageData.value = dataUrl;
       applyPortrait();
       refreshPreview();
+      // Save immediately so refresh shows the portrait.
+      const ok = saveToStorage({ silent: true });
+      if (!ok) scheduleAutosave();
       setStatus("Portrait updated.");
     });
 
@@ -528,6 +601,7 @@
           ["Notes / Tags", s?.notes],
         ],
       }, handlers),
+      onChange: scheduleAutosave,
     });
 
     syncSpellsUI = () => spellsManager.sync();
@@ -583,6 +657,7 @@
           ["Notes", a?.notes],
         ],
       }, handlers),
+      onChange: scheduleAutosave,
     });
 
     syncActionsUI = () => actionsManager.sync();
@@ -638,6 +713,7 @@
           ["Tags", i?.tags],
         ],
       }, handlers),
+      onChange: scheduleAutosave,
     });
 
     syncInventoryUI = () => inventoryManager.sync();
@@ -664,6 +740,7 @@
         desc: (f?.desc ?? "").trim(),
         notes: (f?.notes ?? "").trim(),
       }),
+      onChange: scheduleAutosave,
       legacyParse: (raw) => {
         const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
         return lines.map((name) => ({ name, source: "", uses: "", desc: "", notes: "" }));
@@ -848,20 +925,27 @@
 
     syncHeaderAbilitiesUI = renderHeaderAbilities;
 
+    const onAnyFieldChange = (el) => {
+      refreshPreview();
+      scheduleAutosave();
+      const name = el.getAttribute("name");
+      if (name === "spells") syncSpellsUI();
+      if (name === "actions") syncActionsUI();
+      if (name === "inventory") syncInventoryUI();
+      if (name === "features") syncFeaturesUI();
+      if (name === "profile_image") syncPortraitUI();
+      if (name === "hp" || name === "hp_max" || name === "hp_temp") syncHeartsUI();
+      if (name === "stamina" || name === "stamina_max" || name === "stamina_temp") syncStaminaUI();
+      if (name && (name.startsWith("score_") || name.startsWith("attr_"))) syncHeaderAbilitiesUI();
+    };
+
     for (const el of getAllFields()) {
-      el.addEventListener("input", () => {
-        refreshPreview();
-        const name = el.getAttribute("name");
-        if (name === "spells") syncSpellsUI();
-        if (name === "actions") syncActionsUI();
-        if (name === "inventory") syncInventoryUI();
-        if (name === "features") syncFeaturesUI();
-        if (name === "profile_image") syncPortraitUI();
-        if (name === "hp" || name === "hp_max" || name === "hp_temp") syncHeartsUI();
-        if (name === "stamina" || name === "stamina_max" || name === "stamina_temp") syncStaminaUI();
-        if (name && (name.startsWith("score_") || name.startsWith("attr_"))) syncHeaderAbilitiesUI();
-      });
+      el.addEventListener("input", () => onAnyFieldChange(el));
+      el.addEventListener("change", () => onAnyFieldChange(el));
     }
+
+    // Auto-load saved sheet (if any) so it appears immediately on visit/refresh.
+    loadFromStorage({ silent: true });
 
     refreshPreview();
     syncPortraitUI();
