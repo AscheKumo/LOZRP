@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LOZ RP Character Sheet</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="wrap sheet" role="main">
+    <details class="sheet-top card card--collapsible" open aria-label="Character header">
+      <summary class="card-header compact card-summary">
+        <h2 class="card-title">Character</h2>
+        <p class="card-hint">Identity & vitals.</p>
+      </summary>
+      <div class="banner" aria-label="Character banner">
+        <div class="banner-left">
+          <div class="avatar" aria-label="Character portrait">
+            <img id="profileImg" class="avatar-img" alt="Character portrait" />
+            <div class="avatar-actions">
+              <label class="btn btn-secondary filelike" for="profileUpload">Upload Image</label>
+              <input id="profileUpload" type="file" accept="image/*" />
+            </div>
+            <!-- Stored as a data URL so it persists with Save/Load/Export/Import -->
+            <input type="hidden" name="profile_image" id="profileImageData" />
+          </div>
+        </div>
+
+        <div class="banner-right">
+          <label class="field field-hero">
+            <span class="field-label">Character Name</span>
+            <input class="field-input field-input-hero" name="name" placeholder="e.g., Sariah" autocomplete="off" />
+          </label>
+
+          <div class="banner-grid" aria-label="Character details">
+            <label class="field">
+              <span class="field-label">Gender</span>
+              <input class="field-input" name="gender" placeholder="e.g., female" autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">Race / People</span>
+              <select class="field-input" name="race">
+                <option value="">Select…</option>
+                <option>Hylian</option>
+                <option>Sheikah</option>
+                <option>Gerudo</option>
+                <option>Goron</option>
+                <option>Zora</option>
+                <option>Rito</option>
+                <option>Korok</option>
+                <option>Twili</option>
+                <option>Other</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field-label">Class</span>
+              <input class="field-input" name="role" placeholder="e.g., Scout, Sage, Knight" autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">Level</span>
+              <input class="field-input" name="level" inputmode="numeric" placeholder="1" />
+            </label>
+          </div>
+
+          <div class="banner-grid-2" aria-label="Extra identity">
+            <label class="field">
+              <span class="field-label">Pronouns</span>
+              <input class="field-input" name="pronouns" placeholder="e.g., she/her" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">Age</span>
+              <input class="field-input" name="age" placeholder="e.g., 19" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">Home Region</span>
+              <input class="field-input" name="region" placeholder="e.g., Lanayru, Faron" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">Affiliation</span>
+              <input class="field-input" name="affiliation" placeholder="e.g., Hyrule Guard" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">Companion / Mount</span>
+              <input class="field-input" name="companion" placeholder="e.g., Loftwing" autocomplete="off" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="banner-vitals" aria-label="Vitals preview">
+        <div class="vital-block" aria-label="Hearts preview">
+          <div class="vital-title">Hearts</div>
+          <div class="hearts-visual hearts-visual--mini" id="heartsVisualHeader" aria-label="Heart containers preview"></div>
+        </div>
+
+        <div class="vital-block" aria-label="Stamina preview">
+          <div class="vital-title">Stamina</div>
+          <div class="stamina-preview">
+            <div class="stamina-wheel" id="staminaWheelHeader" role="img" aria-label="Stamina wheel">
+              <div class="stamina-wheel-inner">
+                <div class="stamina-wheel-text" id="staminaTextHeader">0/0</div>
+              </div>
+            </div>
+
+            <div class="stamina-values" aria-label="Stamina values">
+              <div class="stamina-kv">
+                <div class="stamina-k">Current</div>
+                <div class="stamina-v" id="staminaCurrentHeader">0</div>
+              </div>
+              <div class="stamina-kv">
+                <div class="stamina-k">Max</div>
+                <div class="stamina-v" id="staminaMaxHeader">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="banner-abilities" aria-label="Abilities preview">
+        <div class="ability-mini" aria-label="Courage preview">
+          <div class="ability-mini-name">Courage</div>
+          <div class="ability-mini-bonus" id="abilityBonusCourage">+0</div>
+          <div class="ability-mini-base">Base <span id="abilityBaseCourage">0</span></div>
+        </div>
+        <div class="ability-mini" aria-label="Agility preview">
+          <div class="ability-mini-name">Agility</div>
+          <div class="ability-mini-bonus" id="abilityBonusAgility">+0</div>
+          <div class="ability-mini-base">Base <span id="abilityBaseAgility">0</span></div>
+        </div>
+        <div class="ability-mini" aria-label="Wisdom preview">
+          <div class="ability-mini-name">Wisdom</div>
+          <div class="ability-mini-bonus" id="abilityBonusWisdom">+0</div>
+          <div class="ability-mini-base">Base <span id="abilityBaseWisdom">0</span></div>
+        </div>
+        <div class="ability-mini" aria-label="Wit preview">
+          <div class="ability-mini-name">Wit</div>
+          <div class="ability-mini-bonus" id="abilityBonusWit">+0</div>
+          <div class="ability-mini-base">Base <span id="abilityBaseWit">0</span></div>
+        </div>
+        <div class="ability-mini" aria-label="Power preview">
+          <div class="ability-mini-name">Power</div>
+          <div class="ability-mini-bonus" id="abilityBonusPower">+0</div>
+          <div class="ability-mini-base">Base <span id="abilityBasePower">0</span></div>
+        </div>
+        <div class="ability-mini" aria-label="Spirit preview">
+          <div class="ability-mini-name">Spirit</div>
+          <div class="ability-mini-bonus" id="abilityBonusSpirit">+0</div>
+          <div class="ability-mini-base">Base <span id="abilityBaseSpirit">0</span></div>
+        </div>
+      </div>
+
+      <div class="sheet-actions" role="group" aria-label="Sheet actions">
+        <button class="btn" type="button" id="btnSave">Save</button>
+        <button class="btn" type="button" id="btnLoad">Load</button>
+        <button class="btn btn-secondary" type="button" id="btnReset">Reset</button>
+      </div>
+    </details>
+
+    <div class="sheet-grid" aria-label="Character sheet">
+      <!-- LEFT COLUMN -->
+      <aside class="sheet-col" aria-label="Abilities and proficiencies">
+        <details class="card card--collapsible" open aria-label="Abilities">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Abilities</h2>
+            <p class="card-hint">D&D-like layout; use any values.</p>
+          </summary>
+
+          <div class="abilities">
+            <div class="ability">
+              <div class="ability-head">
+                <span class="ability-name">Courage</span>
+                <span class="ability-tag">might</span>
+              </div>
+              <div class="ability-body">
+                <label class="field field-mini">
+                  <span class="field-label">Base</span>
+                  <input class="field-input ability-input" name="score_courage" inputmode="numeric" placeholder="10" aria-label="Courage base" />
+                </label>
+                <label class="field field-mini">
+                  <span class="field-label">Add</span>
+                  <input class="field-input ability-input" name="attr_courage" inputmode="numeric" placeholder="+0" aria-label="Courage added" />
+                </label>
+              </div>
+            </div>
+            <div class="ability">
+              <div class="ability-head">
+                <span class="ability-name">Agility</span>
+                <span class="ability-tag">dexterity</span>
+              </div>
+              <div class="ability-body">
+                <label class="field field-mini">
+                  <span class="field-label">Base</span>
+                  <input class="field-input ability-input" name="score_agility" inputmode="numeric" placeholder="10" aria-label="Agility base" />
+                </label>
+                <label class="field field-mini">
+                  <span class="field-label">Add</span>
+                  <input class="field-input ability-input" name="attr_agility" inputmode="numeric" placeholder="+0" aria-label="Agility added" />
+                </label>
+              </div>
+            </div>
+            <div class="ability">
+              <div class="ability-head">
+                <span class="ability-name">Wisdom</span>
+                <span class="ability-tag">sense</span>
+              </div>
+              <div class="ability-body">
+                <label class="field field-mini">
+                  <span class="field-label">Base</span>
+                  <input class="field-input ability-input" name="score_wisdom" inputmode="numeric" placeholder="10" aria-label="Wisdom base" />
+                </label>
+                <label class="field field-mini">
+                  <span class="field-label">Add</span>
+                  <input class="field-input ability-input" name="attr_wisdom" inputmode="numeric" placeholder="+0" aria-label="Wisdom added" />
+                </label>
+              </div>
+            </div>
+            <div class="ability">
+              <div class="ability-head">
+                <span class="ability-name">Wit</span>
+                <span class="ability-tag">intellect</span>
+              </div>
+              <div class="ability-body">
+                <label class="field field-mini">
+                  <span class="field-label">Base</span>
+                  <input class="field-input ability-input" name="score_wit" inputmode="numeric" placeholder="10" aria-label="Wit base" />
+                </label>
+                <label class="field field-mini">
+                  <span class="field-label">Add</span>
+                  <input class="field-input ability-input" name="attr_wit" inputmode="numeric" placeholder="+0" aria-label="Wit added" />
+                </label>
+              </div>
+            </div>
+            <div class="ability">
+              <div class="ability-head">
+                <span class="ability-name">Power</span>
+                <span class="ability-tag">force</span>
+              </div>
+              <div class="ability-body">
+                <label class="field field-mini">
+                  <span class="field-label">Base</span>
+                  <input class="field-input ability-input" name="score_power" inputmode="numeric" placeholder="10" aria-label="Power base" />
+                </label>
+                <label class="field field-mini">
+                  <span class="field-label">Add</span>
+                  <input class="field-input ability-input" name="attr_power" inputmode="numeric" placeholder="+0" aria-label="Power added" />
+                </label>
+              </div>
+            </div>
+            <div class="ability">
+              <div class="ability-head">
+                <span class="ability-name">Spirit</span>
+                <span class="ability-tag">will</span>
+              </div>
+              <div class="ability-body">
+                <label class="field field-mini">
+                  <span class="field-label">Base</span>
+                  <input class="field-input ability-input" name="score_spirit" inputmode="numeric" placeholder="10" aria-label="Spirit base" />
+                </label>
+                <label class="field field-mini">
+                  <span class="field-label">Add</span>
+                  <input class="field-input ability-input" name="attr_spirit" inputmode="numeric" placeholder="+0" aria-label="Spirit added" />
+                </label>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="card card--collapsible" open aria-label="Senses">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Senses</h2>
+            <p class="card-hint">Passive stats & perception.</p>
+          </summary>
+
+          <div class="mini-grid">
+            <label class="field">
+              <span class="field-label">Passive Perception</span>
+              <input class="field-input" name="passive_perception" inputmode="numeric" placeholder="" />
+            </label>
+            <label class="field">
+              <span class="field-label">Passive Insight</span>
+              <input class="field-input" name="passive_insight" inputmode="numeric" placeholder="" />
+            </label>
+            <label class="field">
+              <span class="field-label">Passive Investigation</span>
+              <input class="field-input" name="passive_investigation" inputmode="numeric" placeholder="" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field-label">Additional Senses</span>
+            <input class="field-input" name="senses" placeholder="e.g., darkvision, keen hearing" autocomplete="off" />
+          </label>
+        </details>
+
+        <details class="card card--collapsible" open aria-label="Proficiencies">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Training</h2>
+            <p class="card-hint">Armor, weapons, tools, languages.</p>
+          </summary>
+
+          <label class="field">
+            <span class="field-label">Armor</span>
+            <input class="field-input" name="prof_armor" placeholder="e.g., Light, Medium" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Weapons</span>
+            <input class="field-input" name="prof_weapons" placeholder="e.g., Swords, bows" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Tools</span>
+            <input class="field-input" name="prof_tools" placeholder="e.g., herbalism, navigator's tools" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Languages</span>
+            <input class="field-input" name="prof_languages" placeholder="e.g., Common, Hylian, Ancient" autocomplete="off" />
+          </label>
+        </details>
+      </aside>
+
+      <!-- CENTER COLUMN -->
+      <section class="sheet-col" aria-label="Skills">
+        <details class="card card--collapsible" open aria-label="Skills">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Skills</h2>
+            <p class="card-hint">Use modifiers, ranks, or notes.</p>
+          </summary>
+
+          <div class="skills">
+            <div class="skill-row"><span class="skill-name">Acrobatics</span><input class="skill-mod" name="skill_acrobatics" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Animal Handling</span><input class="skill-mod" name="skill_animal" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Arcana</span><input class="skill-mod" name="skill_arcana" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Athletics</span><input class="skill-mod" name="skill_athletics" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Deception</span><input class="skill-mod" name="skill_deception" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">History</span><input class="skill-mod" name="skill_history" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Insight</span><input class="skill-mod" name="skill_insight" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Intimidation</span><input class="skill-mod" name="skill_intimidation" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Investigation</span><input class="skill-mod" name="skill_investigation" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Medicine</span><input class="skill-mod" name="skill_medicine" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Nature</span><input class="skill-mod" name="skill_nature" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Perception</span><input class="skill-mod" name="skill_perception" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Performance</span><input class="skill-mod" name="skill_performance" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Persuasion</span><input class="skill-mod" name="skill_persuasion" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Religion</span><input class="skill-mod" name="skill_religion" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Sleight of Hand</span><input class="skill-mod" name="skill_sleight" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Stealth</span><input class="skill-mod" name="skill_stealth" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Survival</span><input class="skill-mod" name="skill_survival" inputmode="numeric" placeholder="+0" /></div>
+          </div>
+        </details>
+
+        <details class="card card--collapsible" open aria-label="Actions in Combat">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Actions in Combat</h2>
+            <p class="card-hint">Common things you can do on-turn (and off-turn).</p>
+          </summary>
+
+          <div class="combat-actions">
+            <div class="combat-action"><span class="combat-action-name">Attack</span><span class="combat-action-desc">Make a weapon or unarmed strike.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Cast a Spell / Technique</span><span class="combat-action-desc">Use a spell, technique, or special ability.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Dash</span><span class="combat-action-desc">Move again (gain extra movement).</span></div>
+            <div class="combat-action"><span class="combat-action-name">Disengage</span><span class="combat-action-desc">Move away without provoking a free strike (if your rules use them).</span></div>
+            <div class="combat-action"><span class="combat-action-name">Dodge</span><span class="combat-action-desc">Focus on defense until your next turn.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Help</span><span class="combat-action-desc">Give an ally advantage or set them up for success.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Hide</span><span class="combat-action-desc">Attempt to become unseen or hard to target.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Ready</span><span class="combat-action-desc">Prepare an action to trigger on a condition.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Search</span><span class="combat-action-desc">Look for something hidden or unclear.</span></div>
+            <div class="combat-action"><span class="combat-action-name">Use an Object</span><span class="combat-action-desc">Interact with gear (bombs, potions, tools, etc.).</span></div>
+            <div class="combat-action"><span class="combat-action-name">Grapple / Shove</span><span class="combat-action-desc">Control positioning with an opposed check (if used).</span></div>
+            <div class="combat-action"><span class="combat-action-name">Improvise</span><span class="combat-action-desc">Try a creative move—your GM decides the roll.</span></div>
+          </div>
+        </details>
+      </section>
+
+      <!-- RIGHT COLUMN -->
+      <aside class="sheet-col" aria-label="Combat and notes">
+        <details class="card card--collapsible" open aria-label="Combat overview">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Combat</h2>
+            <p class="card-hint">Hearts, stamina, and adventuring stats.</p>
+          </summary>
+          <div class="stat-row">
+            <div class="stat-pill">
+              <div class="stat-pill-top">Proficiency</div>
+              <input class="stat-pill-value" name="proficiency" inputmode="numeric" placeholder="+0" />
+            </div>
+            <div class="stat-pill">
+              <div class="stat-pill-top">Speed</div>
+              <input class="stat-pill-value" name="speed" inputmode="numeric" placeholder="30" />
+            </div>
+            <div class="stat-pill">
+              <div class="stat-pill-top">Initiative</div>
+              <input class="stat-pill-value" name="initiative" inputmode="numeric" placeholder="+0" />
+            </div>
+            <div class="stat-pill">
+              <div class="stat-pill-top">Armor</div>
+              <input class="stat-pill-value" name="ac" inputmode="numeric" placeholder="" />
+            </div>
+          </div>
+
+          <div class="hp-box" aria-label="Hearts">
+            <div class="hp-title">Hearts</div>
+            <div class="hearts-visual" id="heartsVisual" aria-label="Heart containers"></div>
+            <div class="hp-grid">
+              <label class="field">
+                <span class="field-label">Current</span>
+                <input class="field-input" name="hp" inputmode="numeric" placeholder="" />
+              </label>
+              <label class="field">
+                <span class="field-label">Max</span>
+                <input class="field-input" name="hp_max" inputmode="numeric" placeholder="" />
+              </label>
+              <label class="field">
+                <span class="field-label">Temp</span>
+                <input class="field-input" name="hp_temp" inputmode="numeric" placeholder="" />
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <label class="field">
+              <span class="field-label">Max Stamina</span>
+              <input class="field-input" type="number" min="0" step="1" name="stamina_max" inputmode="numeric" placeholder="" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">Rupees</span>
+              <input class="field-input" name="rupees" inputmode="numeric" placeholder="" />
+            </label>
+          </div>
+
+          <div class="grid grid-2" aria-label="Stamina controls">
+            <div class="field">
+              <span class="field-label">Stamina</span>
+              <div class="slider-row">
+                <div class="slider-value" id="staminaValue">0</div>
+                <input class="slider" type="range" name="stamina" min="0" max="0" step="1" value="0" aria-label="Stamina" />
+              </div>
+            </div>
+            <div class="field">
+              <span class="field-label">Temp Stamina</span>
+              <div class="slider-row">
+                <div class="slider-value slider-value-temp" id="staminaTempValue">0</div>
+                <input class="slider" type="range" name="stamina_temp" min="0" max="0" step="1" value="0" aria-label="Temp Stamina" />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <label class="field">
+              <span class="field-label">Renown</span>
+              <input class="field-input" name="renown" inputmode="numeric" placeholder="" />
+            </label>
+            <label class="field">
+              <span class="field-label">Conditions</span>
+              <input class="field-input" name="conditions" placeholder="e.g., poisoned, cursed" autocomplete="off" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field-label">Defenses</span>
+            <input class="field-input" name="defenses" placeholder="Resistances, immunities, vulnerabilities…" autocomplete="off" />
+          </label>
+        </details>
+
+        <details class="card card--collapsible" open aria-label="Tabs">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Details</h2>
+            <p class="card-hint">Actions, spells, inventory, features, and notes.</p>
+          </summary>
+
+          <div class="tabs" role="tablist" aria-label="Details tabs">
+            <button class="tab-btn" type="button" role="tab" aria-selected="true" data-tab="actions">Actions</button>
+            <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="spells">Spells</button>
+            <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="inventory">Inventory</button>
+            <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="features">Features</button>
+            <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="background">Background</button>
+            <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="notes">Notes</button>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="actions">
+            <div class="entry-builder" aria-label="Actions">
+              <div class="entry-builder-head">
+                <div>
+                  <div class="entry-builder-title">Actions</div>
+                  <div class="entry-builder-sub">Build actions with fields, then tap + Add.</div>
+                </div>
+                <div class="builder-actions" aria-label="Actions controls">
+                  <button class="btn builder-only" type="button" id="btnAddAction" aria-label="Add action">+ Add</button>
+                </div>
+              </div>
+
+              <div class="entry-fields">
+                <label class="field">
+                  <span class="field-label">Name</span>
+                  <input class="field-input" id="actionName" placeholder="e.g., Spin Attack" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Action Type</span>
+                  <select class="field-input" id="actionKind">
+                    <option value="Attack">Attack</option>
+                    <option value="Action" selected>Action</option>
+                    <option value="Bonus Action">Bonus Action</option>
+                    <option value="Reaction">Reaction</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field-label">Subtype</span>
+                  <input class="field-input" id="actionType" placeholder="e.g., Melee, Ranged, Special" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">To Hit / DC</span>
+                  <input class="field-input" id="actionToHit" placeholder="e.g., +5 / DC 13" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="entry-fields entry-fields-wide">
+                <label class="field">
+                  <span class="field-label">Damage / Effect</span>
+                  <textarea class="field-input" id="actionEffect" rows="4" placeholder="Dice, effects, conditions…"></textarea>
+                </label>
+                <label class="field">
+                  <span class="field-label">Notes</span>
+                  <textarea class="field-input" id="actionNotes" rows="4" placeholder="Uses, limits, flavor…"></textarea>
+                </label>
+              </div>
+
+              <div class="subtabs" role="tablist" aria-label="Action types">
+                <button class="subtab-btn" type="button" role="tab" aria-selected="true" data-action-filter="all">All</button>
+                <button class="subtab-btn" type="button" role="tab" aria-selected="false" data-action-filter="attack">Attack</button>
+                <button class="subtab-btn" type="button" role="tab" aria-selected="false" data-action-filter="action">Action</button>
+                <button class="subtab-btn" type="button" role="tab" aria-selected="false" data-action-filter="bonus">Bonus Action</button>
+                <button class="subtab-btn" type="button" role="tab" aria-selected="false" data-action-filter="reaction">Reaction</button>
+                <button class="subtab-btn" type="button" role="tab" aria-selected="false" data-action-filter="other">Other</button>
+              </div>
+
+              <div id="actionsList" class="card-list" aria-label="Action list"></div>
+            </div>
+
+            <!-- Persisted actions data (JSON array). -->
+            <textarea class="field-input" name="actions" id="actionsData" hidden></textarea>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="spells" hidden>
+            <div class="spell-builder" aria-label="Spells / Techniques">
+              <div class="spell-builder-head">
+                <div>
+                  <div class="spell-builder-title">Spells / Techniques</div>
+                  <div class="spell-builder-sub">Build spells with fields, then tap + Add.</div>
+                </div>
+                <div class="builder-actions" aria-label="Spells controls">
+                  <button class="btn builder-only" type="button" id="btnAddSpell" aria-label="Add spell">+ Add</button>
+                </div>
+              </div>
+
+              <div class="spell-fields">
+                <label class="field">
+                  <span class="field-label">Name</span>
+                  <input class="field-input" id="spellName" placeholder="e.g., Guidance" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Level</span>
+                  <input class="field-input" id="spellLevel" placeholder="e.g., Cantrip, 1" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Casting Time</span>
+                  <input class="field-input" id="spellTime" placeholder="e.g., 1 action" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Range / Area</span>
+                  <input class="field-input" id="spellRange" placeholder="e.g., Touch, 60 ft" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Components</span>
+                  <input class="field-input" id="spellComponents" placeholder="e.g., V, S, M" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Duration</span>
+                  <input class="field-input" id="spellDuration" placeholder="e.g., 1 minute" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="spell-fields spell-fields-wide">
+                <label class="field">
+                  <span class="field-label">Effect</span>
+                  <textarea class="field-input" id="spellEffect" rows="5" placeholder="What it does, key mechanics, limits…"></textarea>
+                </label>
+                <label class="field">
+                  <span class="field-label">Notes / Tags</span>
+                  <textarea class="field-input" id="spellNotes" rows="5" placeholder="e.g., buff, healing, legacy…"></textarea>
+                </label>
+              </div>
+
+              <div id="spellsList" class="card-list" aria-label="Known spells"></div>
+            </div>
+
+            <!-- Persisted spells data (JSON array). Kept hidden but included in Save/Load/Export/Import. -->
+            <textarea class="field-input" name="spells" id="spellsData" hidden></textarea>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="inventory" hidden>
+            <div class="entry-builder" aria-label="Inventory">
+              <div class="entry-builder-head">
+                <div>
+                  <div class="entry-builder-title">Inventory</div>
+                  <div class="entry-builder-sub">Add items with quantity and notes.</div>
+                </div>
+                <div class="builder-actions" aria-label="Inventory controls">
+                  <button class="btn builder-only" type="button" id="btnAddItem" aria-label="Add inventory item">+ Add</button>
+                </div>
+              </div>
+
+              <div class="entry-fields">
+                <label class="field">
+                  <span class="field-label">Item</span>
+                  <input class="field-input" id="itemName" placeholder="e.g., Fairy in a bottle" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Qty</span>
+                  <input class="field-input" id="itemQty" placeholder="1" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Category</span>
+                  <input class="field-input" id="itemCategory" placeholder="e.g., Consumable" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="entry-fields entry-fields-wide">
+                <label class="field">
+                  <span class="field-label">Notes</span>
+                  <textarea class="field-input" id="itemNotes" rows="4" placeholder="Effects, where it came from, quirks…"></textarea>
+                </label>
+                <label class="field">
+                  <span class="field-label">Tags</span>
+                  <textarea class="field-input" id="itemTags" rows="4" placeholder="e.g., key item, quest, fragile…"></textarea>
+                </label>
+              </div>
+
+              <div id="inventoryList" class="card-list" aria-label="Inventory list"></div>
+            </div>
+
+            <!-- Persisted inventory data (JSON array). -->
+            <textarea class="field-input" name="inventory" id="inventoryData" hidden></textarea>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="features" hidden>
+            <div class="entry-builder" aria-label="Features & Traits">
+              <div class="entry-builder-head">
+                <div>
+                  <div class="entry-builder-title">Features & Traits</div>
+                  <div class="entry-builder-sub">Add traits, boons, passives, and special abilities.</div>
+                </div>
+                <div class="builder-actions" aria-label="Features controls">
+                  <button class="btn builder-only" type="button" id="btnAddFeature" aria-label="Add feature">+ Add</button>
+                </div>
+              </div>
+
+              <div class="entry-fields">
+                <label class="field">
+                  <span class="field-label">Name</span>
+                  <input class="field-input" id="featureName" placeholder="e.g., Sheikah Techniques" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Source</span>
+                  <input class="field-input" id="featureSource" placeholder="e.g., Race, Class, Relic" autocomplete="off" />
+                </label>
+                <label class="field">
+                  <span class="field-label">Uses</span>
+                  <input class="field-input" id="featureUses" placeholder="e.g., 1/Long Rest" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="entry-fields entry-fields-wide">
+                <label class="field">
+                  <span class="field-label">Description</span>
+                  <textarea class="field-input" id="featureDesc" rows="5" placeholder="What it does, triggers, limits…"></textarea>
+                </label>
+                <label class="field">
+                  <span class="field-label">Notes</span>
+                  <textarea class="field-input" id="featureNotes" rows="5" placeholder="Extra reminders, tags…"></textarea>
+                </label>
+              </div>
+
+              <div id="featuresList" class="card-list" aria-label="Features list"></div>
+            </div>
+
+            <!-- Persisted features data (JSON array). -->
+            <textarea class="field-input" name="features" id="featuresData" hidden></textarea>
+
+            <label class="field">
+              <span class="field-label">Bonds</span>
+              <textarea class="field-input" name="bonds" rows="5" placeholder="People, places, promises…"></textarea>
+            </label>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="background" hidden>
+            <label class="field">
+              <span class="field-label">Backstory</span>
+              <textarea class="field-input" name="backstory" rows="9" placeholder="Where they came from and why they're traveling…"></textarea>
+            </label>
+            <label class="field">
+              <span class="field-label">Goals</span>
+              <textarea class="field-input" name="goals" rows="6" placeholder="Short-term and long-term goals…"></textarea>
+            </label>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="notes" hidden>
+            <div class="grid grid-2">
+              <label class="field">
+                <span class="field-label">Appearance</span>
+                <textarea class="field-input" name="appearance" rows="6" placeholder="Hair, eyes, build, notable features…"></textarea>
+              </label>
+              <label class="field">
+                <span class="field-label">Personality</span>
+                <textarea class="field-input" name="personality" rows="6" placeholder="Virtues, flaws, habits, speech style…"></textarea>
+              </label>
+            </div>
+            <label class="field">
+              <span class="field-label">Secrets / Notes</span>
+              <textarea class="field-input" name="notes" rows="10" placeholder="Anything you don't want to forget…"></textarea>
+            </label>
+          </div>
+        </details>
+
+        <details class="card card--collapsible" open aria-label="Export">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Export / Import</h2>
+            <p class="card-hint">Backup your sheet as JSON.</p>
+          </summary>
+
+          <div class="export-actions" role="group" aria-label="Export and import actions">
+            <button class="btn btn-secondary" type="button" id="btnExport">Export JSON</button>
+            <label class="btn btn-secondary filelike" for="fileImport">Import JSON</label>
+            <input id="fileImport" type="file" accept="application/json" />
+            <span class="status" id="status" aria-live="polite"></span>
+          </div>
+
+          <label class="field">
+            <span class="field-label">Export Preview</span>
+            <textarea class="field-input mono" name="exportPreview" id="exportPreview" rows="8" readonly placeholder="Your exported JSON will appear here…"></textarea>
+          </label>
+        </details>
+      </aside>
+    </div>
+
+    <footer class="site-footer" role="contentinfo">
+      <p class="fineprint">
+        This fan-made character sheet is not affiliated with or endorsed by Nintendo.
+      </p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
