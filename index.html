@@ -156,6 +156,7 @@
         <button class="btn" type="button" id="btnSave">Save</button>
         <button class="btn" type="button" id="btnLoad">Load</button>
         <button class="btn btn-secondary" type="button" id="btnReset">Reset</button>
+        <input id="fileQuickLoad" type="file" accept=".loz" hidden />
       </div>
     </details>
 
@@ -736,11 +737,11 @@
           <div class="export-actions" role="group" aria-label="Export and import actions">
             <button class="btn btn-secondary" type="button" id="btnExport">Export JSON</button>
             <label class="btn btn-secondary filelike" for="fileImport">Import JSON</label>
-            <input id="fileImport" type="file" accept="application/json" />
+            <input id="fileImport" type="file" accept=".loz" />
             <span class="status" id="status" aria-live="polite"></span>
           </div>
 
-          <label class="field">
+          <label class="field" hidden>
             <span class="field-label">Export Preview</span>
             <textarea class="field-input mono" name="exportPreview" id="exportPreview" rows="8" readonly placeholder="Your exported JSON will appear here…"></textarea>
           </label>

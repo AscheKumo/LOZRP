@@ -8,7 +8,7 @@ This is a single-page, offline-friendly, static HTML character sheet inspired by
 - Fill in fields.
 - Changes are saved automatically (localStorage autosave) and loaded on refresh.
 - You can still use **Save** / **Load** manually if you want.
-- Use **Export JSON** to download a backup; **Import JSON** to restore.
+- Use **Save** to download a `.loz` file (JSON inside); **Load** to restore from a `.loz` file.
 
 ## Theme / Background
 

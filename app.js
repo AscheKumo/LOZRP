@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY = "lozrp.sheet.v1";
+  const PORTRAIT_KEY = "lozrp.sheet.portrait.v1";
 
   let lastStorageErrorAt = 0;
 
@@ -60,24 +61,45 @@
     return Array.from(formLikeRoot.querySelectorAll(fieldsSelector));
   }
 
-  function readSheet() {
+  function readSheet({ includePortrait = true } = {}) {
     const data = {};
     for (const el of getAllFields()) {
       const name = el.getAttribute("name");
       if (!name) continue;
       if (name === "exportPreview") continue;
+      if (!includePortrait && name === "profile_image") continue;
       data[name] = el.value;
     }
     return data;
   }
 
   function writeSheet(data) {
+    // Special-case stamina range inputs: browsers clamp `type=range` values to the
+    // current max, and our max starts at 0 until stamina sync runs.
+    const pendingStamina = {
+      stamina: data?.stamina ?? undefined,
+      stamina_temp: data?.stamina_temp ?? undefined,
+    };
+
     for (const el of getAllFields()) {
       const name = el.getAttribute("name");
       if (!name) continue;
       if (name === "exportPreview") continue;
+      if (name === "stamina" || name === "stamina_temp") continue;
       el.value = data?.[name] ?? "";
     }
+
+    // First sync updates range max values based on stamina_max.
+    syncStaminaUI();
+
+    // Now set saved range values when max is correct (prevents clamping to 0).
+    const staminaEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="stamina"]'));
+    const staminaTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="stamina_temp"]'));
+    if (staminaEl && pendingStamina.stamina !== undefined) staminaEl.value = String(pendingStamina.stamina ?? "");
+    if (staminaTempEl && pendingStamina.stamina_temp !== undefined) staminaTempEl.value = String(pendingStamina.stamina_temp ?? "");
+
+    // Second sync clamps + updates visuals.
+    syncStaminaUI();
   }
 
   function toInt(value) {
@@ -236,22 +258,39 @@
   }
 
   function saveToStorage({ silent = false } = {}) {
-    const data = readSheet();
+    // Keep portrait separate so a large image can't block saving core sheet values.
+    const data = readSheet({ includePortrait: false });
+    const portrait = (/** @type {HTMLInputElement | null} */ (document.getElementById("profileImageData"))?.value ?? "").trim();
+
+    let ok = false;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         savedAt: new Date().toISOString(),
         data,
       }));
+      ok = true;
       if (!silent) setStatus("Saved.");
-      return true;
-    } catch (e) {
+    } catch {
       const now = Date.now();
       if (now - lastStorageErrorAt > 2500) {
         lastStorageErrorAt = now;
-        setStatus("Autosave failed (storage full). Try a smaller portrait image.", "error");
+        setStatus("Autosave failed (storage full).", "error");
       }
-      return false;
     }
+
+    // Portrait is optional; failing to store it shouldn't block core saves.
+    try {
+      if (portrait) localStorage.setItem(PORTRAIT_KEY, portrait);
+      else localStorage.removeItem(PORTRAIT_KEY);
+    } catch {
+      const now = Date.now();
+      if (now - lastStorageErrorAt > 2500) {
+        lastStorageErrorAt = now;
+        setStatus("Portrait couldn't be saved (storage full). Use a smaller image.", "error");
+      }
+    }
+
+    return ok;
   }
 
   function loadFromStorage({ silent = false } = {}) {
@@ -264,6 +303,12 @@
     try {
       const parsed = JSON.parse(raw);
       writeSheet(parsed?.data ?? {});
+
+      // Restore portrait saved separately (if present).
+      const storedPortrait = (localStorage.getItem(PORTRAIT_KEY) ?? "").trim();
+      const profileImageData = /** @type {HTMLInputElement | null} */ (document.getElementById("profileImageData"));
+      if (profileImageData && storedPortrait) profileImageData.value = storedPortrait;
+
       refreshPreview();
       syncSpellsUI();
       syncActionsUI();
@@ -283,6 +328,7 @@
     const ok = window.confirm("Reset all fields? (This will also update autosave.)");
     if (!ok) return;
     writeSheet({});
+    try { localStorage.removeItem(PORTRAIT_KEY); } catch { /* ignore */ }
     refreshPreview();
     syncSpellsUI();
     syncActionsUI();
@@ -304,13 +350,12 @@
     };
 
     const text = JSON.stringify(payload, null, 2);
-    if (exportPreviewEl) exportPreviewEl.value = text;
 
     const blob = new Blob([text], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = (payload.sheet.name ? `${payload.sheet.name}` : "character") + ".json";
+    a.download = (payload.sheet.name ? `${payload.sheet.name}` : "character") + ".loz";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -320,6 +365,12 @@
   }
 
   async function importJsonFile(file) {
+    const fileName = (file?.name ?? "").toLowerCase();
+    if (!fileName.endsWith(".loz")) {
+      setStatus("Please choose a .loz file.", "error");
+      return;
+    }
+
     const text = await file.text();
     let parsed;
     try {
@@ -355,9 +406,13 @@
     const btnReset = document.getElementById("btnReset");
     const btnExport = document.getElementById("btnExport");
     const fileImport = document.getElementById("fileImport");
+    const fileQuickLoad = document.getElementById("fileQuickLoad");
 
-    btnSave?.addEventListener("click", saveToStorage);
-    btnLoad?.addEventListener("click", loadFromStorage);
+    // Save/Load buttons act as file export/import (no raw JSON preview).
+    btnSave?.addEventListener("click", exportJson);
+    btnLoad?.addEventListener("click", () => {
+      /** @type {HTMLInputElement | null} */ (fileQuickLoad)?.click();
+    });
     btnReset?.addEventListener("click", resetSheet);
     btnExport?.addEventListener("click", exportJson);
 
@@ -375,7 +430,7 @@
       reader.readAsDataURL(file);
     });
 
-    const compressDataUrl = async (dataUrl, { maxDim = 640, quality = 0.85 } = {}) => {
+    const compressDataUrl = async (dataUrl, { maxDim = 420, quality = 0.78 } = {}) => {
       // Downscale to keep localStorage usage reasonable.
       // Uses JPEG for good compression; fallback to original on failure.
       const img = new Image();
@@ -467,7 +522,7 @@
 
       // Read and compress as data URL to ensure it persists in localStorage.
       const original = await readFileAsDataUrl(file).catch(() => "");
-      const dataUrl = original ? await compressDataUrl(original, { maxDim: 640, quality: 0.85 }) : "";
+      const dataUrl = original ? await compressDataUrl(original, { maxDim: 420, quality: 0.78 }) : "";
 
       if (!dataUrl) {
         setStatus("Failed to load image.", "error");
@@ -483,12 +538,15 @@
       setStatus("Portrait updated.");
     });
 
-    fileImport?.addEventListener("change", async (e) => {
+    const handleImportChange = async (e) => {
       const file = e.target.files?.[0];
       e.target.value = "";
       if (!file) return;
       await importJsonFile(file);
-    });
+    };
+
+    fileImport?.addEventListener("change", handleImportChange);
+    /** @type {HTMLInputElement | null} */ (fileQuickLoad)?.addEventListener("change", handleImportChange);
 
     // Autoshow a preview that stays current, but don't spam storage.
     refreshPreview = () => {
@@ -820,7 +878,8 @@
     const staminaTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="stamina_temp"]'));
 
     const renderStamina = () => {
-      if (!staminaWheelHeaderEl && !staminaTextHeaderEl && !staminaCurrentHeaderEl && !staminaMaxHeaderEl) return;
+      // Always sync the range inputs when present; header preview is optional.
+      if (!staminaEl && !staminaMaxEl && !staminaTempEl) return;
 
       const max = Math.max(0, toInt(staminaMaxEl?.value));
 
