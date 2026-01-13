@@ -10,6 +10,10 @@
   --accent: #65d27a;
   --accent-2: #e3c36a;
   --mana: #5aa9ff;
+  --ability: #b38bff;
+  --talent: #ff9c4a;
+  --grit: var(--danger);
+  --luck: var(--accent-2);
   --danger: #ff6b6b;
   --focus: rgba(101, 210, 122, 0.30);
 
@@ -250,15 +254,20 @@ details.card:not([open]) .card-header {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.grid-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 @media (max-width: 860px) {
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 620px) {
   .header-inner { flex-direction: column; align-items: stretch; }
   .header-actions { justify-content: flex-start; }
-  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
 }
 
 .field {
@@ -453,8 +462,32 @@ textarea.field-input {
   padding-top: 14px;
   border-top: 1px solid var(--stroke);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 12px;
+}
+
+.combat-meters {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.combat-meter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 860px) {
+  .combat-meter-grid { grid-template-columns: 1fr; }
+}
+
+.combat-meter .grid {
+  margin-bottom: 8px;
+}
+
+.combat-meter .grid:last-child {
+  margin-bottom: 0;
 }
 
 .vital-block--hearts {
@@ -466,6 +499,21 @@ textarea.field-input {
   border-radius: 16px;
   background: rgba(0,0,0,0.12);
   padding: 12px;
+}
+
+.vital-block.is-disabled {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.combat-meter.is-disabled {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
+.combat-meter.is-disabled .field-input,
+.combat-meter.is-disabled .slider {
+  pointer-events: none;
 }
 
 .vital-title {
@@ -541,6 +589,90 @@ textarea.field-input {
 
 .stamina-wheel--mana .stamina-wheel-inner {
   background: linear-gradient(180deg, rgba(90, 169, 255, 0.18), rgba(0,0,0,0.16));
+}
+
+/* Talent/Grit/Luck meter uses the same wheel but purple fill. */
+.stamina-wheel--ability::before,
+.stamina-wheel--ability::after {
+  background: conic-gradient(var(--ability) var(--p1), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--ability::before {
+  background: conic-gradient(var(--ability) var(--p2), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--ability .stamina-wheel-inner {
+  background: linear-gradient(180deg, rgba(179, 139, 255, 0.18), rgba(0,0,0,0.16));
+}
+
+/* Talent uses orange fill. */
+.stamina-wheel--talent::before,
+.stamina-wheel--talent::after {
+  background: conic-gradient(var(--talent) var(--p1), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--talent::before {
+  background: conic-gradient(var(--talent) var(--p2), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--talent .stamina-wheel-inner {
+  background: linear-gradient(180deg, rgba(255, 156, 74, 0.18), rgba(0,0,0,0.16));
+}
+
+/* Grit uses red fill. */
+.stamina-wheel--grit::before,
+.stamina-wheel--grit::after {
+  background: conic-gradient(var(--grit) var(--p1), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--grit::before {
+  background: conic-gradient(var(--grit) var(--p2), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--grit .stamina-wheel-inner {
+  background: linear-gradient(180deg, rgba(255, 107, 107, 0.18), rgba(0,0,0,0.16));
+}
+
+/* Luck uses yellow fill. */
+.stamina-wheel--luck::before,
+.stamina-wheel--luck::after {
+  background: conic-gradient(var(--luck) var(--p1), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--luck::before {
+  background: conic-gradient(var(--luck) var(--p2), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--luck .stamina-wheel-inner {
+  background: linear-gradient(180deg, rgba(227, 195, 106, 0.18), rgba(0,0,0,0.16));
+}
+
+/* Inspiration header indicator */
+.vital-block--inspiration {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.inspiration-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.18);
+}
+
+.vital-block--inspiration.is-active {
+  opacity: 1;
+  filter: none;
+}
+
+.vital-block--inspiration.is-active .inspiration-indicator {
+  border-color: rgba(179, 139, 255, 0.85);
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.70), rgba(179, 139, 255, 0.88));
+  box-shadow: 0 0 0 4px rgba(179, 139, 255, 0.18), 0 0 18px rgba(179, 139, 255, 0.22);
 }
 
 .stamina-wheel-inner {

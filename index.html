@@ -96,7 +96,7 @@
           <div class="hearts-visual hearts-visual--mini" id="heartsVisualHeader" aria-label="Heart containers preview"></div>
         </div>
 
-        <div class="vital-block" aria-label="Stamina preview">
+        <div class="vital-block" aria-label="Stamina preview" title="Stamina: action economy.">
           <div class="vital-title">Stamina</div>
           <div class="stamina-preview">
             <div class="stamina-wheel" id="staminaWheelHeader" role="img" aria-label="Stamina wheel">
@@ -118,7 +118,7 @@
           </div>
         </div>
 
-        <div class="vital-block" aria-label="Mana preview">
+        <div class="vital-block" aria-label="Mana preview" title="Mana: spells castable per day.">
           <div class="vital-title">Mana</div>
           <div class="stamina-preview">
             <div class="stamina-wheel stamina-wheel--mana" id="manaWheelHeader" role="img" aria-label="Mana wheel">
@@ -138,6 +138,102 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="vital-block is-disabled" id="vitalAbilityHeader" aria-label="Ability preview" title="Ability: class ability.">
+          <div class="vital-title">Ability</div>
+          <div class="stamina-preview">
+            <div class="stamina-wheel stamina-wheel--ability" id="abilityWheelHeader" role="img" aria-label="Ability wheel">
+              <div class="stamina-wheel-inner">
+                <div class="stamina-wheel-text" id="abilityTextHeader">0/0</div>
+              </div>
+            </div>
+
+            <div class="stamina-values" aria-label="Ability values">
+              <div class="stamina-kv">
+                <div class="stamina-k">Current</div>
+                <div class="stamina-v" id="abilityCurrentHeader">0</div>
+              </div>
+              <div class="stamina-kv">
+                <div class="stamina-k">Max</div>
+                <div class="stamina-v" id="abilityMaxHeader">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vital-block is-disabled" id="vitalGritHeader" aria-label="Grit preview" title="Grit: take half damage.">
+          <div class="vital-title">Grit</div>
+          <div class="stamina-preview">
+            <div class="stamina-wheel stamina-wheel--grit" id="gritWheelHeader" role="img" aria-label="Grit wheel">
+              <div class="stamina-wheel-inner">
+                <div class="stamina-wheel-text" id="gritTextHeader">0/0</div>
+              </div>
+            </div>
+
+            <div class="stamina-values" aria-label="Grit values">
+              <div class="stamina-kv">
+                <div class="stamina-k">Current</div>
+                <div class="stamina-v" id="gritCurrentHeader">0</div>
+              </div>
+              <div class="stamina-kv">
+                <div class="stamina-k">Max</div>
+                <div class="stamina-v" id="gritMaxHeader">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vital-block is-disabled" id="vitalTalentHeader" aria-label="Talent preview" title="Talent: take a 10 as your roll in an ability check or saving throw.">
+          <div class="vital-title">Talent</div>
+          <div class="stamina-preview">
+            <div class="stamina-wheel stamina-wheel--talent" id="talentWheelHeader" role="img" aria-label="Talent wheel">
+              <div class="stamina-wheel-inner">
+                <div class="stamina-wheel-text" id="talentTextHeader">0/0</div>
+              </div>
+            </div>
+
+            <div class="stamina-values" aria-label="Talent values">
+              <div class="stamina-kv">
+                <div class="stamina-k">Current</div>
+                <div class="stamina-v" id="talentCurrentHeader">0</div>
+              </div>
+              <div class="stamina-kv">
+                <div class="stamina-k">Max</div>
+                <div class="stamina-v" id="talentMaxHeader">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vital-block is-disabled" id="vitalLuckHeader" aria-label="Luck preview" title="Luck: advantage on a roll.">
+          <div class="vital-title">Luck</div>
+          <div class="stamina-preview">
+            <div class="stamina-wheel stamina-wheel--luck" id="luckWheelHeader" role="img" aria-label="Luck wheel">
+              <div class="stamina-wheel-inner">
+                <div class="stamina-wheel-text" id="luckTextHeader">0/0</div>
+              </div>
+            </div>
+
+            <div class="stamina-values" aria-label="Luck values">
+              <div class="stamina-kv">
+                <div class="stamina-k">Current</div>
+                <div class="stamina-v" id="luckCurrentHeader">0</div>
+              </div>
+              <div class="stamina-kv">
+                <div class="stamina-k">Max</div>
+                <div class="stamina-v" id="luckMaxHeader">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vital-block vital-block--inspiration is-disabled" id="vitalInspirationHeader" aria-label="Inspiration preview" title="Inspiration: you either have it or you don't.">
+          <div>
+            <div class="vital-title">Inspiration</div>
+            <div class="stamina-k" id="inspirationStatusHeader">Off</div>
+          </div>
+          <div class="inspiration-indicator" id="inspirationIndicator" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -444,58 +540,220 @@
             </div>
           </div>
 
+          <div class="combat-meters" aria-label="Meters">
+            <div class="combat-meter-grid">
+              <div class="vital-block combat-meter" aria-label="Stamina meter" title="Stamina: action economy.">
+                <div class="vital-title">Stamina</div>
+                <div class="grid grid-2">
+                  <label class="field">
+                    <span class="field-label">Max Stamina</span>
+                    <input class="field-input" type="number" min="0" step="1" name="stamina_max" inputmode="numeric" placeholder="" />
+                  </label>
+                  <div></div>
+                </div>
+                <div class="grid grid-2" aria-label="Stamina controls">
+                  <div class="field">
+                    <span class="field-label">Stamina</span>
+                    <div class="slider-row">
+                      <div class="slider-value" id="staminaValue">0</div>
+                      <input class="slider" type="range" name="stamina" min="0" max="0" step="1" value="0" aria-label="Stamina" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <span class="field-label">Temp Stamina</span>
+                    <div class="slider-row">
+                      <div class="slider-value slider-value-temp" id="staminaTempValue">0</div>
+                      <input class="slider" type="range" name="stamina_temp" min="0" max="0" step="1" value="0" aria-label="Temp Stamina" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="vital-block combat-meter" aria-label="Mana meter" title="Mana: spells castable per day.">
+                <div class="vital-title">Mana</div>
+                <div class="grid grid-2">
+                  <label class="field">
+                    <span class="field-label">Max Mana</span>
+                    <input class="field-input" type="number" min="0" step="1" name="mana_max" inputmode="numeric" placeholder="" />
+                  </label>
+                  <div></div>
+                </div>
+                <div class="grid grid-2" aria-label="Mana controls">
+                  <div class="field">
+                    <span class="field-label">Mana</span>
+                    <div class="slider-row">
+                      <div class="slider-value" id="manaValue">0</div>
+                      <input class="slider" type="range" name="mana" min="0" max="0" step="1" value="0" aria-label="Mana" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <span class="field-label">Temp Mana</span>
+                    <div class="slider-row">
+                      <div class="slider-value slider-value-temp" id="manaTempValue">0</div>
+                      <input class="slider" type="range" name="mana_temp" min="0" max="0" step="1" value="0" aria-label="Temp Mana" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="vital-block combat-meter" aria-label="Optional meters">
+              <div class="vital-title">Optional Meters</div>
+              <div class="grid grid-5" aria-label="Optional meters">
+                <div class="field">
+                  <span class="field-label">Ability</span>
+                  <label class="switch" aria-label="Enable Ability meter">
+                    <input type="checkbox" name="ability_enabled" aria-label="Enable Ability meter" />
+                    <span class="switch-track" aria-hidden="true"></span>
+                  </label>
+                </div>
+                <div class="field">
+                  <span class="field-label">Grit</span>
+                  <label class="switch" aria-label="Enable Grit meter">
+                    <input type="checkbox" name="grit_enabled" aria-label="Enable Grit meter" />
+                    <span class="switch-track" aria-hidden="true"></span>
+                  </label>
+                </div>
+                <div class="field">
+                  <span class="field-label">Talent</span>
+                  <label class="switch" aria-label="Enable Talent meter">
+                    <input type="checkbox" name="talent_enabled" aria-label="Enable Talent meter" />
+                    <span class="switch-track" aria-hidden="true"></span>
+                  </label>
+                </div>
+                <div class="field">
+                  <span class="field-label">Luck</span>
+                  <label class="switch" aria-label="Enable Luck meter">
+                    <input type="checkbox" name="luck_enabled" aria-label="Enable Luck meter" />
+                    <span class="switch-track" aria-hidden="true"></span>
+                  </label>
+                </div>
+                <div class="field">
+                  <span class="field-label">Inspiration</span>
+                  <label class="switch" aria-label="Inspiration">
+                    <input type="checkbox" name="inspiration" aria-label="Inspiration" />
+                    <span class="switch-track" aria-hidden="true"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="combat-meter-grid">
+                <div id="abilityControls" class="vital-block combat-meter is-disabled" title="Ability: class ability.">
+                  <div class="vital-title">Ability</div>
+                  <div class="grid grid-2">
+                    <label class="field">
+                      <span class="field-label">Max Ability</span>
+                      <input class="field-input" type="number" min="0" step="1" name="ability_max" inputmode="numeric" placeholder="" />
+                    </label>
+                    <div></div>
+                  </div>
+                  <div class="grid grid-2" aria-label="Ability controls">
+                    <div class="field">
+                      <span class="field-label">Ability</span>
+                      <div class="slider-row">
+                        <div class="slider-value" id="abilityValue">0</div>
+                        <input class="slider" type="range" name="ability" min="0" max="0" step="1" value="0" aria-label="Ability" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span class="field-label">Temp Ability</span>
+                      <div class="slider-row">
+                        <div class="slider-value slider-value-temp" id="abilityTempValue">0</div>
+                        <input class="slider" type="range" name="ability_temp" min="0" max="0" step="1" value="0" aria-label="Temp Ability" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="gritControls" class="vital-block combat-meter is-disabled" title="Grit: take half damage.">
+                  <div class="vital-title">Grit</div>
+                  <div class="grid grid-2">
+                    <label class="field">
+                      <span class="field-label">Max Grit</span>
+                      <input class="field-input" type="number" min="0" step="1" name="grit_max" inputmode="numeric" placeholder="" />
+                    </label>
+                    <div></div>
+                  </div>
+                  <div class="grid grid-2" aria-label="Grit controls">
+                    <div class="field">
+                      <span class="field-label">Grit</span>
+                      <div class="slider-row">
+                        <div class="slider-value" id="gritValue">0</div>
+                        <input class="slider" type="range" name="grit" min="0" max="0" step="1" value="0" aria-label="Grit" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span class="field-label">Temp Grit</span>
+                      <div class="slider-row">
+                        <div class="slider-value slider-value-temp" id="gritTempValue">0</div>
+                        <input class="slider" type="range" name="grit_temp" min="0" max="0" step="1" value="0" aria-label="Temp Grit" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="talentControls" class="vital-block combat-meter is-disabled" title="Talent: take a 10 as your roll in an ability check or saving throw.">
+                  <div class="vital-title">Talent</div>
+                  <div class="grid grid-2">
+                    <label class="field">
+                      <span class="field-label">Max Talent</span>
+                      <input class="field-input" type="number" min="0" step="1" name="talent_max" inputmode="numeric" placeholder="" />
+                    </label>
+                    <div></div>
+                  </div>
+                  <div class="grid grid-2" aria-label="Talent controls">
+                    <div class="field">
+                      <span class="field-label">Talent</span>
+                      <div class="slider-row">
+                        <div class="slider-value" id="talentValue">0</div>
+                        <input class="slider" type="range" name="talent" min="0" max="0" step="1" value="0" aria-label="Talent" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span class="field-label">Temp Talent</span>
+                      <div class="slider-row">
+                        <div class="slider-value slider-value-temp" id="talentTempValue">0</div>
+                        <input class="slider" type="range" name="talent_temp" min="0" max="0" step="1" value="0" aria-label="Temp Talent" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="luckControls" class="vital-block combat-meter is-disabled" title="Luck: advantage on a roll.">
+                  <div class="vital-title">Luck</div>
+                  <div class="grid grid-2">
+                    <label class="field">
+                      <span class="field-label">Max Luck</span>
+                      <input class="field-input" type="number" min="0" step="1" name="luck_max" inputmode="numeric" placeholder="" />
+                    </label>
+                    <div></div>
+                  </div>
+                  <div class="grid grid-2" aria-label="Luck controls">
+                    <div class="field">
+                      <span class="field-label">Luck</span>
+                      <div class="slider-row">
+                        <div class="slider-value" id="luckValue">0</div>
+                        <input class="slider" type="range" name="luck" min="0" max="0" step="1" value="0" aria-label="Luck" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <span class="field-label">Temp Luck</span>
+                      <div class="slider-row">
+                        <div class="slider-value slider-value-temp" id="luckTempValue">0</div>
+                        <input class="slider" type="range" name="luck_temp" min="0" max="0" step="1" value="0" aria-label="Temp Luck" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="grid grid-3">
-            <label class="field">
-              <span class="field-label">Max Stamina</span>
-              <input class="field-input" type="number" min="0" step="1" name="stamina_max" inputmode="numeric" placeholder="" />
-            </label>
-
-            <label class="field">
-              <span class="field-label">Max Mana</span>
-              <input class="field-input" type="number" min="0" step="1" name="mana_max" inputmode="numeric" placeholder="" />
-            </label>
-
             <label class="field">
               <span class="field-label">Rupees</span>
               <input class="field-input" name="rupees" inputmode="numeric" placeholder="" />
             </label>
-          </div>
-
-          <div class="grid grid-2" aria-label="Stamina controls">
-            <div class="field">
-              <span class="field-label">Stamina</span>
-              <div class="slider-row">
-                <div class="slider-value" id="staminaValue">0</div>
-                <input class="slider" type="range" name="stamina" min="0" max="0" step="1" value="0" aria-label="Stamina" />
-              </div>
-            </div>
-            <div class="field">
-              <span class="field-label">Temp Stamina</span>
-              <div class="slider-row">
-                <div class="slider-value slider-value-temp" id="staminaTempValue">0</div>
-                <input class="slider" type="range" name="stamina_temp" min="0" max="0" step="1" value="0" aria-label="Temp Stamina" />
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-2" aria-label="Mana controls">
-            <div class="field">
-              <span class="field-label">Mana</span>
-              <div class="slider-row">
-                <div class="slider-value" id="manaValue">0</div>
-                <input class="slider" type="range" name="mana" min="0" max="0" step="1" value="0" aria-label="Mana" />
-              </div>
-            </div>
-            <div class="field">
-              <span class="field-label">Temp Mana</span>
-              <div class="slider-row">
-                <div class="slider-value slider-value-temp" id="manaTempValue">0</div>
-                <input class="slider" type="range" name="mana_temp" min="0" max="0" step="1" value="0" aria-label="Temp Mana" />
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-2">
             <label class="field">
               <span class="field-label">Renown</span>
               <input class="field-input" name="renown" inputmode="numeric" placeholder="" />

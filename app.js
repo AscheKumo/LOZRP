@@ -35,6 +35,21 @@
   let syncManaUI = () => {};
 
   /** @type {() => void} */
+  let syncTalentUI = () => {};
+
+  /** @type {() => void} */
+  let syncGritUI = () => {};
+
+  /** @type {() => void} */
+  let syncLuckUI = () => {};
+
+  /** @type {() => void} */
+  let syncInspirationUI = () => {};
+
+  /** @type {() => void} */
+  let syncAbilityUI = () => {};
+
+  /** @type {() => void} */
   let syncHeaderAbilitiesUI = () => {};
 
   /** @type {() => void} */
@@ -95,6 +110,20 @@
       return s === "1" || s === "true" || s === "yes" || s === "on";
     };
 
+    // Inspiration is a boolean toggle now. Back-compat: if an older save used an
+    // Inspiration meter, treat any numeric value > 0 or enabled flag as true.
+    const inspirationCompat = (() => {
+      const v = data?.inspiration;
+      if (v === true || v === false) return v;
+      const s = String(v ?? "").trim();
+      if (s) {
+        const n = Number(s);
+        if (Number.isFinite(n)) return n > 0;
+        if (toBool(s)) return true;
+      }
+      return toBool(data?.inspiration_enabled);
+    })();
+
     // Special-case stamina range inputs: browsers clamp `type=range` values to the
     // current max, and our max starts at 0 until stamina sync runs.
     const pendingStamina = {
@@ -108,13 +137,39 @@
       mana_temp: data?.mana_temp ?? undefined,
     };
 
+    const pendingTalent = {
+      talent: data?.talent ?? undefined,
+      talent_temp: data?.talent_temp ?? undefined,
+    };
+    const pendingGrit = {
+      grit: data?.grit ?? undefined,
+      grit_temp: data?.grit_temp ?? undefined,
+    };
+    const pendingLuck = {
+      luck: data?.luck ?? undefined,
+      luck_temp: data?.luck_temp ?? undefined,
+    };
+
+    const pendingAbility = {
+      ability: data?.ability ?? undefined,
+      ability_temp: data?.ability_temp ?? undefined,
+    };
+
     for (const el of getAllFields()) {
       const name = el.getAttribute("name");
       if (!name) continue;
       if (name === "exportPreview") continue;
       if (name === "stamina" || name === "stamina_temp") continue;
       if (name === "mana" || name === "mana_temp") continue;
+      if (name === "talent" || name === "talent_temp") continue;
+      if (name === "grit" || name === "grit_temp") continue;
+      if (name === "luck" || name === "luck_temp") continue;
+      if (name === "ability" || name === "ability_temp") continue;
       if (el instanceof HTMLInputElement && el.type === "checkbox") {
+        if (name === "inspiration") {
+          el.checked = Boolean(inspirationCompat);
+          continue;
+        }
         el.checked = toBool(data?.[name]);
       } else {
         el.value = data?.[name] ?? "";
@@ -127,6 +182,12 @@
     // First sync updates range max values based on mana_max.
     syncManaUI();
 
+    // First sync updates range max values based on the optional meter max fields.
+    syncTalentUI();
+    syncGritUI();
+    syncLuckUI();
+    syncAbilityUI();
+
     // Now set saved range values when max is correct (prevents clamping to 0).
     const staminaEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="stamina"]'));
     const staminaTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="stamina_temp"]'));
@@ -138,9 +199,34 @@
     if (manaEl && pendingMana.mana !== undefined) manaEl.value = String(pendingMana.mana ?? "");
     if (manaTempEl && pendingMana.mana_temp !== undefined) manaTempEl.value = String(pendingMana.mana_temp ?? "");
 
+    const talentEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="talent"]'));
+    const talentTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="talent_temp"]'));
+    if (talentEl && pendingTalent.talent !== undefined) talentEl.value = String(pendingTalent.talent ?? "");
+    if (talentTempEl && pendingTalent.talent_temp !== undefined) talentTempEl.value = String(pendingTalent.talent_temp ?? "");
+
+    const gritEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="grit"]'));
+    const gritTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="grit_temp"]'));
+    if (gritEl && pendingGrit.grit !== undefined) gritEl.value = String(pendingGrit.grit ?? "");
+    if (gritTempEl && pendingGrit.grit_temp !== undefined) gritTempEl.value = String(pendingGrit.grit_temp ?? "");
+
+    const luckEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="luck"]'));
+    const luckTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="luck_temp"]'));
+    if (luckEl && pendingLuck.luck !== undefined) luckEl.value = String(pendingLuck.luck ?? "");
+    if (luckTempEl && pendingLuck.luck_temp !== undefined) luckTempEl.value = String(pendingLuck.luck_temp ?? "");
+
+    const abilityEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="ability"]'));
+    const abilityTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="ability_temp"]'));
+    if (abilityEl && pendingAbility.ability !== undefined) abilityEl.value = String(pendingAbility.ability ?? "");
+    if (abilityTempEl && pendingAbility.ability_temp !== undefined) abilityTempEl.value = String(pendingAbility.ability_temp ?? "");
+
     // Second sync clamps + updates visuals.
     syncStaminaUI();
     syncManaUI();
+    syncTalentUI();
+    syncGritUI();
+    syncLuckUI();
+    syncAbilityUI();
+    syncInspirationUI();
   }
 
   function toInt(value) {
@@ -383,6 +469,11 @@
       syncHeartsUI();
       syncStaminaUI();
       syncManaUI();
+      syncTalentUI();
+      syncGritUI();
+      syncLuckUI();
+      syncAbilityUI();
+      syncInspirationUI();
       syncSkillsUI();
       if (!silent) setStatus("Loaded.");
     } catch {
@@ -405,6 +496,11 @@
     syncHeartsUI();
     syncStaminaUI();
     syncManaUI();
+    syncTalentUI();
+    syncGritUI();
+    syncLuckUI();
+    syncAbilityUI();
+    syncInspirationUI();
     syncSkillsUI();
     saveToStorage({ silent: true });
     setStatus("Reset.");
@@ -465,6 +561,11 @@
     syncHeartsUI();
     syncStaminaUI();
     syncManaUI();
+    syncTalentUI();
+    syncGritUI();
+    syncLuckUI();
+    syncInspirationUI();
+    syncAbilityUI();
     syncSkillsUI();
     saveToStorage({ silent: true });
     setStatus("Imported.");
@@ -1422,6 +1523,176 @@
 
     syncManaUI = renderMana;
 
+    const createOptionalMeter = ({
+      key,
+      label,
+      enabledName,
+      maxName,
+      curName,
+      tempName,
+      vitalId,
+      wheelId,
+      textId,
+      curHeaderId,
+      maxHeaderId,
+      valueId,
+      tempValueId,
+      controlsId,
+    }) => {
+      const vitalEl = document.getElementById(vitalId);
+      const wheelHeaderEl = document.getElementById(wheelId);
+      const textHeaderEl = document.getElementById(textId);
+      const curHeaderEl = document.getElementById(curHeaderId);
+      const maxHeaderEl = document.getElementById(maxHeaderId);
+      const valueEl = document.getElementById(valueId);
+      const tempValueEl = document.getElementById(tempValueId);
+      const controlsEl = document.getElementById(controlsId);
+
+      const enabledEl = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${enabledName}"]`));
+      const curEl = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${curName}"]`));
+      const maxEl = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${maxName}"]`));
+      const tempEl = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${tempName}"]`));
+
+      return () => {
+        const enabled = Boolean(enabledEl?.checked);
+        if (vitalEl) {
+          vitalEl.hidden = false;
+          vitalEl.classList.toggle('is-disabled', !enabled);
+        }
+        if (controlsEl) {
+          controlsEl.hidden = false;
+          controlsEl.classList.toggle('is-disabled', !enabled);
+        }
+
+        if (!curEl && !maxEl && !tempEl) return;
+
+        const max = Math.max(0, toInt(maxEl?.value));
+        const ringCap = Math.max(0, Math.floor(max * 0.5));
+        const maxTempAllowed = ringCap;
+
+        let cur = Math.max(0, toInt(curEl?.value));
+        cur = Math.min(cur, max);
+
+        const tempAllowed = max > 0 && cur >= max;
+        let temp = Math.max(0, toInt(tempEl?.value));
+        if (!tempAllowed) temp = 0;
+        temp = Math.min(temp, maxTempAllowed);
+
+        if (curEl) {
+          curEl.max = String(max);
+          curEl.value = String(cur);
+          curEl.disabled = !enabled;
+        }
+        if (tempEl) {
+          tempEl.max = String(maxTempAllowed);
+          tempEl.value = String(temp);
+          tempEl.disabled = !enabled || !tempAllowed;
+        }
+        if (maxEl) maxEl.disabled = !enabled;
+
+        if (valueEl) valueEl.textContent = String(cur);
+        if (tempValueEl) tempValueEl.textContent = String(temp);
+
+        const p1 = ringCap > 0 ? Math.max(0, Math.min(1, cur / ringCap)) : 0;
+        const p2 = ringCap > 0 ? Math.max(0, Math.min(1, (cur - ringCap) / ringCap)) : 0;
+        const t = ringCap > 0 ? Math.max(0, Math.min(1, temp / ringCap)) : 0;
+
+        if (wheelHeaderEl) {
+          wheelHeaderEl.style.setProperty("--p1", `${p1 * 100}%`);
+          wheelHeaderEl.style.setProperty("--p2", `${p2 * 100}%`);
+          wheelHeaderEl.style.setProperty("--t", `${t * 100}%`);
+        }
+        if (textHeaderEl) textHeaderEl.textContent = temp > 0 ? `${cur}/${max} +${temp}` : `${cur}/${max}`;
+        if (curHeaderEl) curHeaderEl.textContent = String(cur);
+        if (maxHeaderEl) maxHeaderEl.textContent = String(max);
+      };
+    };
+
+    syncTalentUI = createOptionalMeter({
+      key: 'talent',
+      label: 'Talent',
+      enabledName: 'talent_enabled',
+      maxName: 'talent_max',
+      curName: 'talent',
+      tempName: 'talent_temp',
+      vitalId: 'vitalTalentHeader',
+      wheelId: 'talentWheelHeader',
+      textId: 'talentTextHeader',
+      curHeaderId: 'talentCurrentHeader',
+      maxHeaderId: 'talentMaxHeader',
+      valueId: 'talentValue',
+      tempValueId: 'talentTempValue',
+      controlsId: 'talentControls',
+    });
+
+    syncGritUI = createOptionalMeter({
+      key: 'grit',
+      label: 'Grit',
+      enabledName: 'grit_enabled',
+      maxName: 'grit_max',
+      curName: 'grit',
+      tempName: 'grit_temp',
+      vitalId: 'vitalGritHeader',
+      wheelId: 'gritWheelHeader',
+      textId: 'gritTextHeader',
+      curHeaderId: 'gritCurrentHeader',
+      maxHeaderId: 'gritMaxHeader',
+      valueId: 'gritValue',
+      tempValueId: 'gritTempValue',
+      controlsId: 'gritControls',
+    });
+
+    syncLuckUI = createOptionalMeter({
+      key: 'luck',
+      label: 'Luck',
+      enabledName: 'luck_enabled',
+      maxName: 'luck_max',
+      curName: 'luck',
+      tempName: 'luck_temp',
+      vitalId: 'vitalLuckHeader',
+      wheelId: 'luckWheelHeader',
+      textId: 'luckTextHeader',
+      curHeaderId: 'luckCurrentHeader',
+      maxHeaderId: 'luckMaxHeader',
+      valueId: 'luckValue',
+      tempValueId: 'luckTempValue',
+      controlsId: 'luckControls',
+    });
+
+    // Inspiration: simple on/off toggle.
+    const inspirationToggleEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="inspiration"]'));
+    const inspirationVitalEl = document.getElementById('vitalInspirationHeader');
+    const inspirationStatusEl = document.getElementById('inspirationStatusHeader');
+    const inspirationIndicatorEl = document.getElementById('inspirationIndicator');
+
+    syncInspirationUI = () => {
+      const hasInspiration = Boolean(inspirationToggleEl?.checked);
+      if (inspirationVitalEl) {
+        inspirationVitalEl.hidden = false;
+        inspirationVitalEl.classList.toggle('is-disabled', !hasInspiration);
+        inspirationVitalEl.classList.toggle('is-active', hasInspiration);
+      }
+      if (inspirationStatusEl) inspirationStatusEl.textContent = hasInspiration ? 'On' : 'Off';
+      void inspirationIndicatorEl;
+    };
+
+    syncAbilityUI = createOptionalMeter({
+      key: 'ability',
+      label: 'Ability',
+      enabledName: 'ability_enabled',
+      maxName: 'ability_max',
+      curName: 'ability',
+      tempName: 'ability_temp',
+      vitalId: 'vitalAbilityHeader',
+      wheelId: 'abilityWheelHeader',
+      textId: 'abilityTextHeader',
+      curHeaderId: 'abilityCurrentHeader',
+      maxHeaderId: 'abilityMaxHeader',
+      valueId: 'abilityValue',
+      tempValueId: 'abilityTempValue',
+      controlsId: 'abilityControls',
+    });
+
     const toSigned = (n) => `${n >= 0 ? "+" : ""}${n}`;
 
     // Abilities + Skills: compute ability modifiers and fill skill totals.
@@ -1510,6 +1781,11 @@
       if (name === "hp" || name === "hp_max" || name === "hp_temp") syncHeartsUI();
       if (name === "stamina" || name === "stamina_max" || name === "stamina_temp") syncStaminaUI();
       if (name === "mana" || name === "mana_max" || name === "mana_temp") syncManaUI();
+      if (name === "talent" || name === "talent_max" || name === "talent_temp" || name === "talent_enabled") syncTalentUI();
+      if (name === "grit" || name === "grit_max" || name === "grit_temp" || name === "grit_enabled") syncGritUI();
+      if (name === "luck" || name === "luck_max" || name === "luck_temp" || name === "luck_enabled") syncLuckUI();
+      if (name === "inspiration") syncInspirationUI();
+      if (name === "ability" || name === "ability_max" || name === "ability_temp" || name === "ability_enabled") syncAbilityUI();
       if (name === "proficiency") syncSkillsUI();
       if (name && (name.startsWith("score_") || name.startsWith("attr_") || name.startsWith("skill_prof_"))) syncSkillsUI();
     };
@@ -1532,6 +1808,11 @@
     syncHeartsUI();
     syncStaminaUI();
     syncManaUI();
+    syncTalentUI();
+    syncGritUI();
+    syncLuckUI();
+    syncAbilityUI();
+    syncInspirationUI();
     syncSkillsUI();
   }
 
