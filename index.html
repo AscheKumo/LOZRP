@@ -91,7 +91,7 @@
       </div>
 
       <div class="banner-vitals" aria-label="Vitals preview">
-        <div class="vital-block" aria-label="Hearts preview">
+        <div class="vital-block vital-block--hearts" aria-label="Hearts preview">
           <div class="vital-title">Hearts</div>
           <div class="hearts-visual hearts-visual--mini" id="heartsVisualHeader" aria-label="Heart containers preview"></div>
         </div>
@@ -113,6 +113,28 @@
               <div class="stamina-kv">
                 <div class="stamina-k">Max</div>
                 <div class="stamina-v" id="staminaMaxHeader">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vital-block" aria-label="Mana preview">
+          <div class="vital-title">Mana</div>
+          <div class="stamina-preview">
+            <div class="stamina-wheel stamina-wheel--mana" id="manaWheelHeader" role="img" aria-label="Mana wheel">
+              <div class="stamina-wheel-inner">
+                <div class="stamina-wheel-text" id="manaTextHeader">0/0</div>
+              </div>
+            </div>
+
+            <div class="stamina-values" aria-label="Mana values">
+              <div class="stamina-kv">
+                <div class="stamina-k">Current</div>
+                <div class="stamina-v" id="manaCurrentHeader">0</div>
+              </div>
+              <div class="stamina-kv">
+                <div class="stamina-k">Max</div>
+                <div class="stamina-v" id="manaMaxHeader">0</div>
               </div>
             </div>
           </div>
@@ -181,8 +203,8 @@
                   <input class="field-input ability-input" name="score_courage" inputmode="numeric" placeholder="10" aria-label="Courage base" />
                 </label>
                 <label class="field field-mini">
-                  <span class="field-label">Add</span>
-                  <input class="field-input ability-input" name="attr_courage" inputmode="numeric" placeholder="+0" aria-label="Courage added" />
+                  <span class="field-label">Mod</span>
+                  <input class="field-input ability-input" name="attr_courage" inputmode="numeric" placeholder="+0" aria-label="Courage modifier" readonly />
                 </label>
               </div>
             </div>
@@ -197,8 +219,8 @@
                   <input class="field-input ability-input" name="score_agility" inputmode="numeric" placeholder="10" aria-label="Agility base" />
                 </label>
                 <label class="field field-mini">
-                  <span class="field-label">Add</span>
-                  <input class="field-input ability-input" name="attr_agility" inputmode="numeric" placeholder="+0" aria-label="Agility added" />
+                  <span class="field-label">Mod</span>
+                  <input class="field-input ability-input" name="attr_agility" inputmode="numeric" placeholder="+0" aria-label="Agility modifier" readonly />
                 </label>
               </div>
             </div>
@@ -213,8 +235,8 @@
                   <input class="field-input ability-input" name="score_wisdom" inputmode="numeric" placeholder="10" aria-label="Wisdom base" />
                 </label>
                 <label class="field field-mini">
-                  <span class="field-label">Add</span>
-                  <input class="field-input ability-input" name="attr_wisdom" inputmode="numeric" placeholder="+0" aria-label="Wisdom added" />
+                  <span class="field-label">Mod</span>
+                  <input class="field-input ability-input" name="attr_wisdom" inputmode="numeric" placeholder="+0" aria-label="Wisdom modifier" readonly />
                 </label>
               </div>
             </div>
@@ -229,8 +251,8 @@
                   <input class="field-input ability-input" name="score_wit" inputmode="numeric" placeholder="10" aria-label="Wit base" />
                 </label>
                 <label class="field field-mini">
-                  <span class="field-label">Add</span>
-                  <input class="field-input ability-input" name="attr_wit" inputmode="numeric" placeholder="+0" aria-label="Wit added" />
+                  <span class="field-label">Mod</span>
+                  <input class="field-input ability-input" name="attr_wit" inputmode="numeric" placeholder="+0" aria-label="Wit modifier" readonly />
                 </label>
               </div>
             </div>
@@ -245,8 +267,8 @@
                   <input class="field-input ability-input" name="score_power" inputmode="numeric" placeholder="10" aria-label="Power base" />
                 </label>
                 <label class="field field-mini">
-                  <span class="field-label">Add</span>
-                  <input class="field-input ability-input" name="attr_power" inputmode="numeric" placeholder="+0" aria-label="Power added" />
+                  <span class="field-label">Mod</span>
+                  <input class="field-input ability-input" name="attr_power" inputmode="numeric" placeholder="+0" aria-label="Power modifier" readonly />
                 </label>
               </div>
             </div>
@@ -261,8 +283,8 @@
                   <input class="field-input ability-input" name="score_spirit" inputmode="numeric" placeholder="10" aria-label="Spirit base" />
                 </label>
                 <label class="field field-mini">
-                  <span class="field-label">Add</span>
-                  <input class="field-input ability-input" name="attr_spirit" inputmode="numeric" placeholder="+0" aria-label="Spirit added" />
+                  <span class="field-label">Mod</span>
+                  <input class="field-input ability-input" name="attr_spirit" inputmode="numeric" placeholder="+0" aria-label="Spirit modifier" readonly />
                 </label>
               </div>
             </div>
@@ -333,24 +355,24 @@
           </summary>
 
           <div class="skills">
-            <div class="skill-row"><span class="skill-name">Acrobatics</span><input class="skill-mod" name="skill_acrobatics" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Animal Handling</span><input class="skill-mod" name="skill_animal" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Arcana</span><input class="skill-mod" name="skill_arcana" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Athletics</span><input class="skill-mod" name="skill_athletics" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Deception</span><input class="skill-mod" name="skill_deception" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">History</span><input class="skill-mod" name="skill_history" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Insight</span><input class="skill-mod" name="skill_insight" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Intimidation</span><input class="skill-mod" name="skill_intimidation" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Investigation</span><input class="skill-mod" name="skill_investigation" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Medicine</span><input class="skill-mod" name="skill_medicine" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Nature</span><input class="skill-mod" name="skill_nature" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Perception</span><input class="skill-mod" name="skill_perception" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Performance</span><input class="skill-mod" name="skill_performance" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Persuasion</span><input class="skill-mod" name="skill_persuasion" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Religion</span><input class="skill-mod" name="skill_religion" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Sleight of Hand</span><input class="skill-mod" name="skill_sleight" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Stealth</span><input class="skill-mod" name="skill_stealth" inputmode="numeric" placeholder="+0" /></div>
-            <div class="skill-row"><span class="skill-name">Survival</span><input class="skill-mod" name="skill_survival" inputmode="numeric" placeholder="+0" /></div>
+            <div class="skill-row"><span class="skill-name">Acrobatics</span><label class="switch skill-prof" aria-label="Proficient in Acrobatics"><input type="checkbox" name="skill_prof_acrobatics" aria-label="Acrobatics proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_acrobatics" inputmode="numeric" placeholder="+0" readonly aria-label="Acrobatics total" /></div>
+            <div class="skill-row"><span class="skill-name">Animal Handling</span><label class="switch skill-prof" aria-label="Proficient in Animal Handling"><input type="checkbox" name="skill_prof_animal" aria-label="Animal Handling proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_animal" inputmode="numeric" placeholder="+0" readonly aria-label="Animal Handling total" /></div>
+            <div class="skill-row"><span class="skill-name">Arcana</span><label class="switch skill-prof" aria-label="Proficient in Arcana"><input type="checkbox" name="skill_prof_arcana" aria-label="Arcana proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_arcana" inputmode="numeric" placeholder="+0" readonly aria-label="Arcana total" /></div>
+            <div class="skill-row"><span class="skill-name">Athletics</span><label class="switch skill-prof" aria-label="Proficient in Athletics"><input type="checkbox" name="skill_prof_athletics" aria-label="Athletics proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_athletics" inputmode="numeric" placeholder="+0" readonly aria-label="Athletics total" /></div>
+            <div class="skill-row"><span class="skill-name">Deception</span><label class="switch skill-prof" aria-label="Proficient in Deception"><input type="checkbox" name="skill_prof_deception" aria-label="Deception proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_deception" inputmode="numeric" placeholder="+0" readonly aria-label="Deception total" /></div>
+            <div class="skill-row"><span class="skill-name">History</span><label class="switch skill-prof" aria-label="Proficient in History"><input type="checkbox" name="skill_prof_history" aria-label="History proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_history" inputmode="numeric" placeholder="+0" readonly aria-label="History total" /></div>
+            <div class="skill-row"><span class="skill-name">Insight</span><label class="switch skill-prof" aria-label="Proficient in Insight"><input type="checkbox" name="skill_prof_insight" aria-label="Insight proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_insight" inputmode="numeric" placeholder="+0" readonly aria-label="Insight total" /></div>
+            <div class="skill-row"><span class="skill-name">Intimidation</span><label class="switch skill-prof" aria-label="Proficient in Intimidation"><input type="checkbox" name="skill_prof_intimidation" aria-label="Intimidation proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_intimidation" inputmode="numeric" placeholder="+0" readonly aria-label="Intimidation total" /></div>
+            <div class="skill-row"><span class="skill-name">Investigation</span><label class="switch skill-prof" aria-label="Proficient in Investigation"><input type="checkbox" name="skill_prof_investigation" aria-label="Investigation proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_investigation" inputmode="numeric" placeholder="+0" readonly aria-label="Investigation total" /></div>
+            <div class="skill-row"><span class="skill-name">Medicine</span><label class="switch skill-prof" aria-label="Proficient in Medicine"><input type="checkbox" name="skill_prof_medicine" aria-label="Medicine proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_medicine" inputmode="numeric" placeholder="+0" readonly aria-label="Medicine total" /></div>
+            <div class="skill-row"><span class="skill-name">Nature</span><label class="switch skill-prof" aria-label="Proficient in Nature"><input type="checkbox" name="skill_prof_nature" aria-label="Nature proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_nature" inputmode="numeric" placeholder="+0" readonly aria-label="Nature total" /></div>
+            <div class="skill-row"><span class="skill-name">Perception</span><label class="switch skill-prof" aria-label="Proficient in Perception"><input type="checkbox" name="skill_prof_perception" aria-label="Perception proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_perception" inputmode="numeric" placeholder="+0" readonly aria-label="Perception total" /></div>
+            <div class="skill-row"><span class="skill-name">Performance</span><label class="switch skill-prof" aria-label="Proficient in Performance"><input type="checkbox" name="skill_prof_performance" aria-label="Performance proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_performance" inputmode="numeric" placeholder="+0" readonly aria-label="Performance total" /></div>
+            <div class="skill-row"><span class="skill-name">Persuasion</span><label class="switch skill-prof" aria-label="Proficient in Persuasion"><input type="checkbox" name="skill_prof_persuasion" aria-label="Persuasion proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_persuasion" inputmode="numeric" placeholder="+0" readonly aria-label="Persuasion total" /></div>
+            <div class="skill-row"><span class="skill-name">Religion</span><label class="switch skill-prof" aria-label="Proficient in Religion"><input type="checkbox" name="skill_prof_religion" aria-label="Religion proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_religion" inputmode="numeric" placeholder="+0" readonly aria-label="Religion total" /></div>
+            <div class="skill-row"><span class="skill-name">Sleight of Hand</span><label class="switch skill-prof" aria-label="Proficient in Sleight of Hand"><input type="checkbox" name="skill_prof_sleight" aria-label="Sleight of Hand proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_sleight" inputmode="numeric" placeholder="+0" readonly aria-label="Sleight of Hand total" /></div>
+            <div class="skill-row"><span class="skill-name">Stealth</span><label class="switch skill-prof" aria-label="Proficient in Stealth"><input type="checkbox" name="skill_prof_stealth" aria-label="Stealth proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_stealth" inputmode="numeric" placeholder="+0" readonly aria-label="Stealth total" /></div>
+            <div class="skill-row"><span class="skill-name">Survival</span><label class="switch skill-prof" aria-label="Proficient in Survival"><input type="checkbox" name="skill_prof_survival" aria-label="Survival proficiency" /><span class="switch-track" aria-hidden="true"></span></label><input class="skill-mod" name="skill_survival" inputmode="numeric" placeholder="+0" readonly aria-label="Survival total" /></div>
           </div>
         </details>
 
@@ -422,10 +444,15 @@
             </div>
           </div>
 
-          <div class="grid grid-2">
+          <div class="grid grid-3">
             <label class="field">
               <span class="field-label">Max Stamina</span>
               <input class="field-input" type="number" min="0" step="1" name="stamina_max" inputmode="numeric" placeholder="" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">Max Mana</span>
+              <input class="field-input" type="number" min="0" step="1" name="mana_max" inputmode="numeric" placeholder="" />
             </label>
 
             <label class="field">
@@ -447,6 +474,23 @@
               <div class="slider-row">
                 <div class="slider-value slider-value-temp" id="staminaTempValue">0</div>
                 <input class="slider" type="range" name="stamina_temp" min="0" max="0" step="1" value="0" aria-label="Temp Stamina" />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-2" aria-label="Mana controls">
+            <div class="field">
+              <span class="field-label">Mana</span>
+              <div class="slider-row">
+                <div class="slider-value" id="manaValue">0</div>
+                <input class="slider" type="range" name="mana" min="0" max="0" step="1" value="0" aria-label="Mana" />
+              </div>
+            </div>
+            <div class="field">
+              <span class="field-label">Temp Mana</span>
+              <div class="slider-row">
+                <div class="slider-value slider-value-temp" id="manaTempValue">0</div>
+                <input class="slider" type="range" name="mana_temp" min="0" max="0" step="1" value="0" aria-label="Temp Mana" />
               </div>
             </div>
           </div>

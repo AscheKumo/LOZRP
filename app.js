@@ -32,7 +32,13 @@
   let syncStaminaUI = () => {};
 
   /** @type {() => void} */
+  let syncManaUI = () => {};
+
+  /** @type {() => void} */
   let syncHeaderAbilitiesUI = () => {};
+
+  /** @type {() => void} */
+  let syncSkillsUI = () => {};
 
   /** @type {HTMLFormElement | null} */
   const formLikeRoot = document.querySelector("main");
@@ -84,16 +90,26 @@
       stamina_temp: data?.stamina_temp ?? undefined,
     };
 
+    // Same behavior for mana.
+    const pendingMana = {
+      mana: data?.mana ?? undefined,
+      mana_temp: data?.mana_temp ?? undefined,
+    };
+
     for (const el of getAllFields()) {
       const name = el.getAttribute("name");
       if (!name) continue;
       if (name === "exportPreview") continue;
       if (name === "stamina" || name === "stamina_temp") continue;
+      if (name === "mana" || name === "mana_temp") continue;
       el.value = data?.[name] ?? "";
     }
 
     // First sync updates range max values based on stamina_max.
     syncStaminaUI();
+
+    // First sync updates range max values based on mana_max.
+    syncManaUI();
 
     // Now set saved range values when max is correct (prevents clamping to 0).
     const staminaEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="stamina"]'));
@@ -101,8 +117,14 @@
     if (staminaEl && pendingStamina.stamina !== undefined) staminaEl.value = String(pendingStamina.stamina ?? "");
     if (staminaTempEl && pendingStamina.stamina_temp !== undefined) staminaTempEl.value = String(pendingStamina.stamina_temp ?? "");
 
+    const manaEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="mana"]'));
+    const manaTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="mana_temp"]'));
+    if (manaEl && pendingMana.mana !== undefined) manaEl.value = String(pendingMana.mana ?? "");
+    if (manaTempEl && pendingMana.mana_temp !== undefined) manaTempEl.value = String(pendingMana.mana_temp ?? "");
+
     // Second sync clamps + updates visuals.
     syncStaminaUI();
+    syncManaUI();
   }
 
   function toInt(value) {
@@ -344,7 +366,8 @@
       syncPortraitUI();
       syncHeartsUI();
       syncStaminaUI();
-      syncHeaderAbilitiesUI();
+      syncManaUI();
+      syncSkillsUI();
       if (!silent) setStatus("Loaded.");
     } catch {
       if (!silent) setStatus("Save data corrupted.", "error");
@@ -365,7 +388,8 @@
     syncPortraitUI();
     syncHeartsUI();
     syncStaminaUI();
-    syncHeaderAbilitiesUI();
+    syncManaUI();
+    syncSkillsUI();
     saveToStorage({ silent: true });
     setStatus("Reset.");
   }
@@ -424,7 +448,8 @@
     syncPortraitUI();
     syncHeartsUI();
     syncStaminaUI();
-    syncHeaderAbilitiesUI();
+    syncManaUI();
+    syncSkillsUI();
     saveToStorage({ silent: true });
     setStatus("Imported.");
   }
@@ -1320,64 +1345,139 @@
 
     syncStaminaUI = renderStamina;
 
-    // Header abilities preview (base + add)
-    const abilityPreview = [
-      {
-        baseName: 'score_courage',
-        addName: 'attr_courage',
-        baseEl: document.getElementById('abilityBaseCourage'),
-        addEl: document.getElementById('abilityBonusCourage'),
-      },
-      {
-        baseName: 'score_agility',
-        addName: 'attr_agility',
-        baseEl: document.getElementById('abilityBaseAgility'),
-        addEl: document.getElementById('abilityBonusAgility'),
-      },
-      {
-        baseName: 'score_wisdom',
-        addName: 'attr_wisdom',
-        baseEl: document.getElementById('abilityBaseWisdom'),
-        addEl: document.getElementById('abilityBonusWisdom'),
-      },
-      {
-        baseName: 'score_wit',
-        addName: 'attr_wit',
-        baseEl: document.getElementById('abilityBaseWit'),
-        addEl: document.getElementById('abilityBonusWit'),
-      },
-      {
-        baseName: 'score_power',
-        addName: 'attr_power',
-        baseEl: document.getElementById('abilityBasePower'),
-        addEl: document.getElementById('abilityBonusPower'),
-      },
-      {
-        baseName: 'score_spirit',
-        addName: 'attr_spirit',
-        baseEl: document.getElementById('abilityBaseSpirit'),
-        addEl: document.getElementById('abilityBonusSpirit'),
-      },
+    // Mana preview (header)
+    const manaWheelHeaderEl = document.getElementById("manaWheelHeader");
+    const manaTextHeaderEl = document.getElementById("manaTextHeader");
+    const manaCurrentHeaderEl = document.getElementById("manaCurrentHeader");
+    const manaMaxHeaderEl = document.getElementById("manaMaxHeader");
+
+    const manaValueEl = document.getElementById("manaValue");
+    const manaTempValueEl = document.getElementById("manaTempValue");
+
+    const manaEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="mana"]'));
+    const manaMaxEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="mana_max"]'));
+    const manaTempEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="mana_temp"]'));
+
+    const renderMana = () => {
+      // Always sync the range inputs when present; header preview is optional.
+      if (!manaEl && !manaMaxEl && !manaTempEl) return;
+
+      const max = Math.max(0, toInt(manaMaxEl?.value));
+
+      // Each ring represents 50% of max mana.
+      const ringCap = Math.max(0, Math.floor(max * 0.5));
+      const maxTempAllowed = ringCap;
+
+      let cur = Math.max(0, toInt(manaEl?.value));
+      cur = Math.min(cur, max);
+
+      // Temp mana only allowed if mana is already at max.
+      const tempAllowed = max > 0 && cur >= max;
+      let temp = Math.max(0, toInt(manaTempEl?.value));
+      if (!tempAllowed) temp = 0;
+      temp = Math.min(temp, maxTempAllowed);
+
+      if (manaEl) {
+        manaEl.max = String(max);
+        manaEl.value = String(cur);
+      }
+      if (manaTempEl) {
+        manaTempEl.max = String(maxTempAllowed);
+        manaTempEl.value = String(temp);
+        manaTempEl.disabled = !tempAllowed;
+      }
+
+      if (manaValueEl) manaValueEl.textContent = String(cur);
+      if (manaTempValueEl) manaTempValueEl.textContent = String(temp);
+
+      const p1 = ringCap > 0 ? Math.max(0, Math.min(1, cur / ringCap)) : 0;
+      const p2 = ringCap > 0 ? Math.max(0, Math.min(1, (cur - ringCap) / ringCap)) : 0;
+      const t = ringCap > 0 ? Math.max(0, Math.min(1, temp / ringCap)) : 0;
+
+      if (manaWheelHeaderEl) {
+        manaWheelHeaderEl.style.setProperty("--p1", `${p1 * 100}%`);
+        manaWheelHeaderEl.style.setProperty("--p2", `${p2 * 100}%`);
+        manaWheelHeaderEl.style.setProperty("--t", `${t * 100}%`);
+      }
+      if (manaTextHeaderEl) manaTextHeaderEl.textContent = temp > 0 ? `${cur}/${max} +${temp}` : `${cur}/${max}`;
+      if (manaCurrentHeaderEl) manaCurrentHeaderEl.textContent = String(cur);
+      if (manaMaxHeaderEl) manaMaxHeaderEl.textContent = String(max);
+    };
+
+    syncManaUI = renderMana;
+
+    const toSigned = (n) => `${n >= 0 ? "+" : ""}${n}`;
+
+    // Abilities + Skills: compute ability modifiers and fill skill totals.
+    const abilityDefs = [
+      { key: 'courage', scoreName: 'score_courage', modName: 'attr_courage', baseEl: document.getElementById('abilityBaseCourage'), modEl: document.getElementById('abilityBonusCourage') },
+      { key: 'agility', scoreName: 'score_agility', modName: 'attr_agility', baseEl: document.getElementById('abilityBaseAgility'), modEl: document.getElementById('abilityBonusAgility') },
+      { key: 'wisdom', scoreName: 'score_wisdom', modName: 'attr_wisdom', baseEl: document.getElementById('abilityBaseWisdom'), modEl: document.getElementById('abilityBonusWisdom') },
+      { key: 'wit', scoreName: 'score_wit', modName: 'attr_wit', baseEl: document.getElementById('abilityBaseWit'), modEl: document.getElementById('abilityBonusWit') },
+      { key: 'power', scoreName: 'score_power', modName: 'attr_power', baseEl: document.getElementById('abilityBasePower'), modEl: document.getElementById('abilityBonusPower') },
+      { key: 'spirit', scoreName: 'score_spirit', modName: 'attr_spirit', baseEl: document.getElementById('abilityBaseSpirit'), modEl: document.getElementById('abilityBonusSpirit') },
     ];
 
-    const renderHeaderAbilities = () => {
-      for (const a of abilityPreview) {
-        const baseInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${a.baseName}"]`));
-        const addInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${a.addName}"]`));
-        const baseRaw = (baseInput?.value ?? "").trim();
-        const addRaw = (addInput?.value ?? "").trim();
-        const base = baseRaw === "" ? "0" : baseRaw;
-        let add = addRaw === "" ? "+0" : addRaw;
-        if (/^-?\d+$/.test(add)) {
-          const n = Number(add);
-          add = `${n >= 0 ? "+" : ""}${n}`;
+    const skillDefs = [
+      { name: 'skill_acrobatics', profName: 'skill_prof_acrobatics', abilityKey: 'agility' },
+      { name: 'skill_animal', profName: 'skill_prof_animal', abilityKey: 'wisdom' },
+      { name: 'skill_arcana', profName: 'skill_prof_arcana', abilityKey: 'wit' },
+      { name: 'skill_athletics', profName: 'skill_prof_athletics', abilityKey: 'courage' },
+      { name: 'skill_deception', profName: 'skill_prof_deception', abilityKey: 'spirit' },
+      { name: 'skill_history', profName: 'skill_prof_history', abilityKey: 'wit' },
+      { name: 'skill_insight', profName: 'skill_prof_insight', abilityKey: 'wisdom' },
+      { name: 'skill_intimidation', profName: 'skill_prof_intimidation', abilityKey: 'spirit' },
+      { name: 'skill_investigation', profName: 'skill_prof_investigation', abilityKey: 'wit' },
+      { name: 'skill_medicine', profName: 'skill_prof_medicine', abilityKey: 'wisdom' },
+      { name: 'skill_nature', profName: 'skill_prof_nature', abilityKey: 'wit' },
+      { name: 'skill_perception', profName: 'skill_prof_perception', abilityKey: 'wisdom' },
+      { name: 'skill_performance', profName: 'skill_prof_performance', abilityKey: 'spirit' },
+      { name: 'skill_persuasion', profName: 'skill_prof_persuasion', abilityKey: 'spirit' },
+      { name: 'skill_religion', profName: 'skill_prof_religion', abilityKey: 'wit' },
+      { name: 'skill_sleight', profName: 'skill_prof_sleight', abilityKey: 'agility' },
+      { name: 'skill_stealth', profName: 'skill_prof_stealth', abilityKey: 'agility' },
+      { name: 'skill_survival', profName: 'skill_prof_survival', abilityKey: 'wisdom' },
+    ];
+
+    const renderAbilitiesAndSkills = () => {
+      /** @type {Record<string, number>} */
+      const mods = {};
+
+      for (const a of abilityDefs) {
+        const scoreInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${a.scoreName}"]`));
+        const modInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${a.modName}"]`));
+
+        const raw = (scoreInput?.value ?? '').trim();
+        const score = raw === '' ? 10 : toInt(raw);
+        const mod = Math.floor((score - 10) / 2);
+        mods[a.key] = mod;
+
+        if (modInput) {
+          modInput.readOnly = true;
+          modInput.value = toSigned(mod);
         }
-        if (a.baseEl) a.baseEl.textContent = base;
-        if (a.addEl) a.addEl.textContent = add;
+
+        if (a.baseEl) a.baseEl.textContent = String(score);
+        if (a.modEl) a.modEl.textContent = toSigned(mod);
+      }
+
+      const profEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="proficiency"]'));
+      const profBonus = toInt((profEl?.value ?? '').trim());
+
+      for (const s of skillDefs) {
+        const totalInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${s.name}"]`));
+        const profToggle = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${s.profName}"]`));
+        if (!totalInput) continue;
+
+        const isProficient = Boolean(profToggle?.checked);
+        const total = (mods[s.abilityKey] ?? 0) + (isProficient ? profBonus : 0);
+        totalInput.readOnly = true;
+        totalInput.value = toSigned(total);
       }
     };
 
-    syncHeaderAbilitiesUI = renderHeaderAbilities;
+    syncHeaderAbilitiesUI = renderAbilitiesAndSkills;
+    syncSkillsUI = renderAbilitiesAndSkills;
 
     const onAnyFieldChange = (el) => {
       refreshPreview();
@@ -1393,7 +1493,9 @@
       if (name === "profile_image") syncPortraitUI();
       if (name === "hp" || name === "hp_max" || name === "hp_temp") syncHeartsUI();
       if (name === "stamina" || name === "stamina_max" || name === "stamina_temp") syncStaminaUI();
-      if (name && (name.startsWith("score_") || name.startsWith("attr_"))) syncHeaderAbilitiesUI();
+      if (name === "mana" || name === "mana_max" || name === "mana_temp") syncManaUI();
+      if (name === "proficiency") syncSkillsUI();
+      if (name && (name.startsWith("score_") || name.startsWith("attr_") || name.startsWith("skill_prof_"))) syncSkillsUI();
     };
 
     for (const el of getAllFields()) {
@@ -1413,7 +1515,8 @@
     syncFeaturesUI();
     syncHeartsUI();
     syncStaminaUI();
-    syncHeaderAbilitiesUI();
+    syncManaUI();
+    syncSkillsUI();
   }
 
   wireUp();
