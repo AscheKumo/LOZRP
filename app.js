@@ -77,12 +77,24 @@
       if (!name) continue;
       if (name === "exportPreview") continue;
       if (!includePortrait && name === "profile_image") continue;
-      data[name] = el.value;
+      if (el instanceof HTMLInputElement && el.type === "checkbox") {
+        data[name] = el.checked;
+      } else {
+        data[name] = el.value;
+      }
     }
     return data;
   }
 
   function writeSheet(data) {
+    const toBool = (v) => {
+      if (v === true) return true;
+      if (v === false) return false;
+      const s = String(v ?? "").trim().toLowerCase();
+      if (!s) return false;
+      return s === "1" || s === "true" || s === "yes" || s === "on";
+    };
+
     // Special-case stamina range inputs: browsers clamp `type=range` values to the
     // current max, and our max starts at 0 until stamina sync runs.
     const pendingStamina = {
@@ -102,7 +114,11 @@
       if (name === "exportPreview") continue;
       if (name === "stamina" || name === "stamina_temp") continue;
       if (name === "mana" || name === "mana_temp") continue;
-      el.value = data?.[name] ?? "";
+      if (el instanceof HTMLInputElement && el.type === "checkbox") {
+        el.checked = toBool(data?.[name]);
+      } else {
+        el.value = data?.[name] ?? "";
+      }
     }
 
     // First sync updates range max values based on stamina_max.
