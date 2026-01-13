@@ -17,6 +17,9 @@
   let syncInventoryUI = () => {};
 
   /** @type {() => void} */
+  let syncEquipmentUI = () => {};
+
+  /** @type {() => void} */
   let syncFeaturesUI = () => {};
 
   /** @type {() => void} */
@@ -153,7 +156,12 @@
     const clearBuilder = () => {
       for (const key of Object.keys(builder)) {
         const input = builder[key];
-        if (input) input.value = "";
+        if (!input) continue;
+        if (input instanceof HTMLInputElement && input.type === "checkbox") {
+          input.checked = false;
+        } else {
+          input.value = "";
+        }
       }
     };
 
@@ -162,7 +170,11 @@
       for (const key of Object.keys(builder)) {
         const input = builder[key];
         if (!input) continue;
-        input.value = item?.[key] ?? "";
+        if (input instanceof HTMLInputElement && input.type === "checkbox") {
+          input.checked = Boolean(item?.[key]);
+        } else {
+          input.value = item?.[key] ?? "";
+        }
       }
       if (addBtn) addBtn.textContent = saveLabel;
     };
@@ -219,14 +231,23 @@
           setStatus("Removed.");
         };
 
-        listEl.appendChild(renderCard(item, { onEdit, onDelete }));
+        listEl.appendChild(renderCard(item, { onEdit, onDelete }, idx));
       });
     };
 
     addBtn?.addEventListener("click", () => {
       const item = {};
       for (const key of Object.keys(builder)) {
-        item[key] = (builder[key]?.value ?? "").trim();
+        const input = builder[key];
+        if (!input) {
+          item[key] = "";
+          continue;
+        }
+        if (input instanceof HTMLInputElement && input.type === "checkbox") {
+          item[key] = input.checked;
+        } else {
+          item[key] = (input.value ?? "").trim();
+        }
       }
       const normalized = normalizeItem ? normalizeItem(item) : item;
 
@@ -238,7 +259,12 @@
 
       const items = read();
       if (editingIndex === null) items.push(normalized);
-      else items[editingIndex] = normalized;
+      else {
+        // Preserve any keys not present in the builder (backwards/forwards compatibility).
+        const prev = items[editingIndex];
+        if (prev && typeof prev === "object") items[editingIndex] = { ...prev, ...normalized };
+        else items[editingIndex] = normalized;
+      }
 
       write(items);
       stopEditing();
@@ -313,6 +339,7 @@
       syncSpellsUI();
       syncActionsUI();
       syncInventoryUI();
+      syncEquipmentUI();
       syncFeaturesUI();
       syncPortraitUI();
       syncHeartsUI();
@@ -333,6 +360,7 @@
     syncSpellsUI();
     syncActionsUI();
     syncInventoryUI();
+    syncEquipmentUI();
     syncFeaturesUI();
     syncPortraitUI();
     syncHeartsUI();
@@ -391,6 +419,7 @@
     syncSpellsUI();
     syncActionsUI();
     syncInventoryUI();
+    syncEquipmentUI();
     syncFeaturesUI();
     syncPortraitUI();
     syncHeartsUI();
@@ -566,7 +595,7 @@
       return wrap;
     };
 
-    const makeCard = ({ name, badge, meta, wide }, { onEdit, onDelete }) => {
+    const makeCard = ({ name, badge, meta, wide }, { onEdit, onDelete }, opts = {}) => {
       const card = el("div", "item-card");
       const head = el("div", "item-head");
 
@@ -575,17 +604,47 @@
       if (badge) title.appendChild(el("div", "item-badge", badge));
 
       const actions = el("div", "item-actions");
-      const btnEdit = el("button", "mini-btn", "Edit");
-      btnEdit.type = "button";
-      btnEdit.addEventListener("click", onEdit);
-      const btnDel = el("button", "mini-btn danger", "Del");
-      btnDel.type = "button";
-      btnDel.addEventListener("click", onDelete);
-      actions.append(btnEdit, btnDel);
+
+      let collapsed = Boolean(opts?.defaultCollapsed);
+      const body = el("div", "item-body");
+      body.hidden = collapsed;
+
+      if (opts?.collapsible) {
+        const btnToggle = el("button", "mini-btn", collapsed ? "Expand" : "Collapse");
+        btnToggle.type = "button";
+        btnToggle.addEventListener("click", () => {
+          collapsed = !collapsed;
+          body.hidden = collapsed;
+          btnToggle.textContent = collapsed ? "Expand" : "Collapse";
+        });
+        actions.appendChild(btnToggle);
+      }
+
+      if (Array.isArray(opts?.extraActions)) {
+        for (const btn of opts.extraActions) {
+          if (btn) actions.appendChild(btn);
+        }
+      }
+
+      const showEdit = opts?.showEdit !== false;
+      const showDelete = opts?.showDelete !== false;
+
+      if (showEdit) {
+        const btnEdit = el("button", "mini-btn", "Edit");
+        btnEdit.type = "button";
+        btnEdit.addEventListener("click", onEdit);
+        actions.appendChild(btnEdit);
+      }
+
+      if (showDelete) {
+        const btnDel = el("button", "mini-btn danger", "Del");
+        btnDel.type = "button";
+        btnDel.addEventListener("click", onDelete);
+        actions.appendChild(btnDel);
+      }
 
       head.append(title, actions);
 
-      const body = el("div", "item-body");
       if (meta?.length) {
         const metaGrid = el("div", "item-meta");
         for (const [k, v] of meta) metaGrid.appendChild(makeKv(k, v));
@@ -735,6 +794,66 @@
     }
 
     // Inventory manager
+    const normalizeInventoryItem = (i) => {
+      const equippable = Boolean(i?.equippable);
+      const equipped = Boolean(i?.equipped) && equippable;
+      return {
+        name: (i?.name ?? "").trim(),
+        qty: (i?.qty ?? "").trim(),
+        category: (i?.category ?? "").trim(),
+        equippable,
+        equipped,
+        equipType: (i?.equipType ?? "").trim(),
+        damage: (i?.damage ?? "").trim(),
+        damageType: (i?.damageType ?? "").trim(),
+        properties: (i?.properties ?? "").trim(),
+        range: (i?.range ?? "").trim(),
+        weight: (i?.weight ?? "").trim(),
+        armorClass: (i?.armorClass ?? "").trim(),
+        notes: (i?.notes ?? "").trim(),
+        tags: (i?.tags ?? "").trim(),
+      };
+    };
+
+    const inventoryDataEl = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("inventoryData"));
+
+    const readInventoryItems = () => {
+      const raw = (inventoryDataEl?.value ?? "").trim();
+      if (!raw) return [];
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.map(normalizeInventoryItem);
+      } catch {
+        // fall through
+      }
+      const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      return lines.map((name) => normalizeInventoryItem({
+        name,
+        qty: "",
+        category: "",
+        equippable: false,
+        equipped: false,
+        equipType: "",
+        damage: "",
+        damageType: "",
+        properties: "",
+        range: "",
+        weight: "",
+        armorClass: "",
+        notes: "",
+        tags: "",
+      }));
+    };
+
+    const writeInventoryItems = (items) => {
+      if (!inventoryDataEl) return;
+      inventoryDataEl.value = JSON.stringify(items.map(normalizeInventoryItem), null, 2);
+      scheduleAutosave();
+      // Keep both inventory and equipment views in sync.
+      syncInventoryUI();
+      syncEquipmentUI();
+    };
+
     const inventoryManager = createJsonListManager({
       dataEl: /** @type {HTMLTextAreaElement | null} */ (document.getElementById("inventoryData")),
       listEl: document.getElementById("inventoryList"),
@@ -746,35 +865,311 @@
         name: /** @type {HTMLInputElement | null} */ (document.getElementById("itemName")),
         qty: /** @type {HTMLInputElement | null} */ (document.getElementById("itemQty")),
         category: /** @type {HTMLInputElement | null} */ (document.getElementById("itemCategory")),
+        equippable: /** @type {HTMLInputElement | null} */ (document.getElementById("itemEquippable")),
+        equipType: /** @type {HTMLSelectElement | null} */ (document.getElementById("itemEquipType")),
+        damage: /** @type {HTMLInputElement | null} */ (document.getElementById("itemDamage")),
+        damageType: /** @type {HTMLInputElement | null} */ (document.getElementById("itemDamageType")),
+        properties: /** @type {HTMLTextAreaElement | null} */ (document.getElementById("itemProperties")),
+        range: /** @type {HTMLInputElement | null} */ (document.getElementById("itemRange")),
+        weight: /** @type {HTMLInputElement | null} */ (document.getElementById("itemWeight")),
+        armorClass: /** @type {HTMLInputElement | null} */ (document.getElementById("itemArmorClass")),
         notes: /** @type {HTMLTextAreaElement | null} */ (document.getElementById("itemNotes")),
         tags: /** @type {HTMLTextAreaElement | null} */ (document.getElementById("itemTags")),
       },
-      normalizeItem: (i) => ({
-        name: (i?.name ?? "").trim(),
-        qty: (i?.qty ?? "").trim(),
-        category: (i?.category ?? "").trim(),
-        notes: (i?.notes ?? "").trim(),
-        tags: (i?.tags ?? "").trim(),
-      }),
+      normalizeItem: normalizeInventoryItem,
       legacyParse: (raw) => {
         const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-        return lines.map((name) => ({ name, qty: "", category: "", notes: "", tags: "" }));
+        return lines.map((name) => ({
+          name,
+          qty: "",
+          category: "",
+          equippable: false,
+          equipped: false,
+          equipType: "",
+          damage: "",
+          damageType: "",
+          properties: "",
+          range: "",
+          weight: "",
+          armorClass: "",
+          notes: "",
+          tags: "",
+        }));
       },
-      renderCard: (i, handlers) => makeCard({
-        name: i?.name,
-        badge: i?.category,
-        meta: [
-          ["Quantity", i?.qty],
-        ],
-        wide: [
-          ["Notes", i?.notes],
-          ["Tags", i?.tags],
-        ],
-      }, handlers),
+      renderCard: (i, handlers, inventoryIndex) => {
+        const isEquippable = Boolean(i?.equippable);
+        const isEquipped = Boolean(i?.equipped) && isEquippable;
+        const type = (i?.equipType ?? "").toString().trim().toLowerCase();
+
+        const isWeapon = type === "weapon_melee" || type === "weapon_ranged";
+        const isAmmo = type === "ammo";
+        const isArmor = type === "armor_light" || type === "armor_medium" || type === "armor_heavy";
+        const isShield = type === "shield";
+        const isGear = type === "gear" || type === "tool" || type === "instrument" || type === "wondrous" || type === "ring" || type === "consumable";
+        const isFocus = type === "wand" || type === "staff" || type === "rod";
+
+        /** @type {Array<[string, string]>} */
+        const meta = [];
+        if (i?.qty) meta.push(["Quantity", i?.qty]);
+        if (isEquippable) {
+          if (type) meta.push(["Type", type.replace(/_/g, " ")]);
+          if (i?.weight) meta.push(["Weight", i?.weight]);
+
+          if (isWeapon || isAmmo) {
+            if (i?.damage) meta.push(["Damage", i?.damage]);
+            if (i?.damageType) meta.push(["Damage Type", i?.damageType]);
+          }
+
+          if (type === "weapon_ranged" || isAmmo || isFocus || type === "gear") {
+            if (i?.range) meta.push(["Range", i?.range]);
+          }
+
+          if (isArmor || isShield) {
+            if (i?.armorClass) meta.push(["Armor Class", i?.armorClass]);
+          }
+        }
+
+        /** @type {Array<[string, string]>} */
+        const wide = [];
+        if (isEquippable && i?.properties) {
+          wide.push(["Properties", i?.properties]);
+        }
+        if (i?.notes) wide.push(["Notes", i?.notes]);
+        if (i?.tags) wide.push(["Tags", i?.tags]);
+
+        const badge = isEquippable
+          ? (isEquipped ? "Equipped" : (type ? type.replace(/_/g, " ") : "Equippable"))
+          : (i?.category || "");
+
+        const btnEquipToggle = el("button", "mini-btn", isEquipped ? "Unequip" : "Equip");
+        btnEquipToggle.type = "button";
+        btnEquipToggle.disabled = !isEquippable;
+        btnEquipToggle.addEventListener("click", () => {
+          const items = readInventoryItems();
+          const idx = Number.isFinite(inventoryIndex) ? inventoryIndex : -1;
+          if (idx < 0 || !items[idx]) return;
+          items[idx].equipped = !isEquipped;
+          writeInventoryItems(items);
+          setStatus(items[idx].equipped ? "Equipped." : "Unequipped.");
+        });
+
+        return makeCard({
+          name: i?.name,
+          badge: badge || undefined,
+          meta,
+          wide,
+        }, handlers, { collapsible: true, extraActions: [btnEquipToggle] });
+      },
       onChange: scheduleAutosave,
+      onEditItem: () => {
+        window.setTimeout(() => updateInventoryEquipBuilderUI(), 0);
+      },
     });
 
-    syncInventoryUI = () => inventoryManager.sync();
+    const equipmentEquippedListEl = document.getElementById("equipmentEquippedList");
+    const equipmentAvailableListEl = document.getElementById("equipmentAvailableList");
+
+    const renderEquipmentLists = () => {
+      if (!equipmentEquippedListEl || !equipmentAvailableListEl) return;
+      const items = readInventoryItems();
+      const equippable = items.map((it, idx) => ({ it, idx })).filter(({ it }) => Boolean(it?.equippable));
+      const equipped = equippable.filter(({ it }) => Boolean(it?.equipped));
+      const available = equippable.filter(({ it }) => !Boolean(it?.equipped));
+
+      const renderGroup = (target, group, emptyText) => {
+        target.innerHTML = "";
+        if (!group.length) {
+          target.appendChild(el("div", "spell-muted", emptyText));
+          return;
+        }
+
+        for (const { it, idx } of group) {
+          const isEquipped = Boolean(it?.equipped);
+          const btn = el("button", "mini-btn", isEquipped ? "Unequip" : "Equip");
+          btn.type = "button";
+          btn.addEventListener("click", () => {
+            const next = readInventoryItems();
+            if (!next[idx]) return;
+            next[idx].equipped = !isEquipped;
+            writeInventoryItems(next);
+            setStatus(!isEquipped ? "Equipped." : "Unequipped.");
+          });
+
+          const rawType = (it?.equipType ?? "").toString().trim().toLowerCase();
+          const badge = rawType ? rawType.replace(/_/g, " ") : (isEquipped ? "Equipped" : "Equippable");
+
+          const isWeapon = rawType === "weapon_melee" || rawType === "weapon_ranged";
+          const isAmmo = rawType === "ammo";
+          const isArmor = rawType === "armor_light" || rawType === "armor_medium" || rawType === "armor_heavy";
+          const isShield = rawType === "shield";
+          const isFocus = rawType === "wand" || rawType === "staff" || rawType === "rod";
+          const isGear = rawType === "gear" || rawType === "tool" || rawType === "instrument" || rawType === "wondrous" || rawType === "ring" || rawType === "consumable";
+
+          /** @type {Array<[string, string]>} */
+          const meta = [];
+          if (it?.qty) meta.push(["Quantity", it.qty]);
+          if (it?.equipType) meta.push(["Type", badge]);
+          if (it?.weight) meta.push(["Weight", it.weight]);
+          if ((isWeapon || isAmmo) && it?.damage) meta.push(["Damage", it.damage]);
+          if ((isWeapon || isAmmo) && it?.damageType) meta.push(["Damage Type", it.damageType]);
+          if ((rawType === "weapon_ranged" || isAmmo || isFocus || isGear) && it?.range) meta.push(["Range", it.range]);
+          if ((isArmor || isShield) && it?.armorClass) meta.push(["Armor Class", it.armorClass]);
+
+          /** @type {Array<[string, string]>} */
+          const wide = [];
+          if (it?.properties) wide.push(["Properties", it.properties]);
+          if (it?.notes) wide.push(["Notes", it.notes]);
+          if (it?.tags) wide.push(["Tags", it.tags]);
+
+          target.appendChild(makeCard({
+            name: it?.name,
+            badge: isEquipped ? "Equipped" : "Available",
+            meta,
+            wide,
+          }, { onEdit: () => {}, onDelete: () => {} }, { collapsible: true, showEdit: false, showDelete: false, extraActions: [btn] }));
+        }
+      };
+
+      renderGroup(equipmentEquippedListEl, equipped, "Nothing equipped yet.");
+      renderGroup(equipmentAvailableListEl, available, "No equippable items in inventory.");
+    };
+
+    syncEquipmentUI = renderEquipmentLists;
+
+    syncInventoryUI = () => {
+      inventoryManager.sync();
+      syncEquipmentUI();
+    };
+
+    // Inventory builder: equippable toggle + conditional field visibility
+    const inventoryEquipRoot = document.getElementById("inventoryEquipFields");
+    const invEquippableEl = /** @type {HTMLInputElement | null} */ (document.getElementById("itemEquippable"));
+    const invTypeEl = /** @type {HTMLSelectElement | null} */ (document.getElementById("itemEquipType"));
+    const invPropertyPickEl = /** @type {HTMLSelectElement | null} */ (document.getElementById("itemPropertyPick"));
+    const invPropertiesEl = /** @type {HTMLTextAreaElement | null} */ (document.getElementById("itemProperties"));
+    const btnAddProperty = document.getElementById("btnAddProperty");
+    const btnClearProperties = document.getElementById("btnClearProperties");
+
+    const EQUIP_PROPERTIES = {
+      weapon: [
+        "Ammunition",
+        "Finesse",
+        "Heavy",
+        "Light",
+        "Loading",
+        "Reach",
+        "Special",
+        "Thrown",
+        "Two-Handed",
+        "Versatile",
+      ],
+      ammo: [
+        "Ammunition",
+        "Consumable",
+      ],
+      armor: [
+        "Stealth Disadvantage",
+        "Strength Requirement",
+      ],
+      shield: [
+        "Shield",
+      ],
+      focus: [
+        "Arcane Focus",
+        "Divine Focus",
+        "Druidic Focus",
+      ],
+      gear: [
+        "Consumable",
+        "Charges",
+        "Attunement",
+      ],
+    };
+
+    const getEquipKind = (type) => {
+      const t = (type ?? "").toString().trim().toLowerCase();
+      if (t === "weapon_melee" || t === "weapon_ranged") return "weapon";
+      if (t === "ammo") return "ammo";
+      if (t === "armor_light" || t === "armor_medium" || t === "armor_heavy") return "armor";
+      if (t === "shield") return "shield";
+      if (t === "wand" || t === "staff" || t === "rod") return "focus";
+      return "gear";
+    };
+
+    const normalizePropertiesList = (raw) => {
+      const text = (raw ?? "").toString();
+      const parts = text
+        .split(/[,\n]/g)
+        .map((p) => p.trim())
+        .filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for (const p of parts) {
+        const key = p.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(p);
+      }
+      return out;
+    };
+
+    const renderPropertyPick = () => {
+      if (!invPropertyPickEl) return;
+      const type = (invTypeEl?.value ?? "").toString();
+      const kind = getEquipKind(type);
+      const options = EQUIP_PROPERTIES[kind] ?? [];
+      invPropertyPickEl.innerHTML = "";
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = options.length ? "Select…" : "No properties for this type";
+      invPropertyPickEl.appendChild(placeholder);
+      for (const optText of options) {
+        const opt = document.createElement("option");
+        opt.value = optText;
+        opt.textContent = optText;
+        invPropertyPickEl.appendChild(opt);
+      }
+    };
+
+    const updateInventoryEquipBuilderUI = () => {
+      if (!inventoryEquipRoot || !invEquippableEl) return;
+      const enabled = Boolean(invEquippableEl.checked);
+      inventoryEquipRoot.hidden = !enabled;
+      if (!enabled) return;
+
+      const type = (invTypeEl?.value ?? "").toString().trim().toLowerCase();
+      const typeFields = Array.from(inventoryEquipRoot.querySelectorAll('[data-equip-for]'));
+      for (const node of typeFields) {
+        const raw = (node.getAttribute('data-equip-for') ?? '').trim();
+        const types = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+        node.hidden = !type || !types.includes(type);
+      }
+
+      renderPropertyPick();
+    };
+
+    invEquippableEl?.addEventListener("change", updateInventoryEquipBuilderUI);
+    invTypeEl?.addEventListener("change", updateInventoryEquipBuilderUI);
+
+    btnAddProperty?.addEventListener("click", () => {
+      if (!invPropertyPickEl || !invPropertiesEl) return;
+      const picked = (invPropertyPickEl.value ?? "").toString().trim();
+      if (!picked) return;
+      const list = normalizePropertiesList(invPropertiesEl.value);
+      list.push(picked);
+      invPropertiesEl.value = normalizePropertiesList(list.join(", ")).join(", ");
+      invPropertyPickEl.value = "";
+    });
+
+    btnClearProperties?.addEventListener("click", () => {
+      if (!invPropertiesEl) return;
+      invPropertiesEl.value = "";
+    });
+
+    document.getElementById("btnAddItem")?.addEventListener("click", () => {
+      window.setTimeout(() => updateInventoryEquipBuilderUI(), 0);
+    });
+    updateInventoryEquipBuilderUI();
 
     // Features manager
     const featuresManager = createJsonListManager({
@@ -990,7 +1385,10 @@
       const name = el.getAttribute("name");
       if (name === "spells") syncSpellsUI();
       if (name === "actions") syncActionsUI();
-      if (name === "inventory") syncInventoryUI();
+      if (name === "inventory") {
+        syncInventoryUI();
+        syncEquipmentUI();
+      }
       if (name === "features") syncFeaturesUI();
       if (name === "profile_image") syncPortraitUI();
       if (name === "hp" || name === "hp_max" || name === "hp_temp") syncHeartsUI();
@@ -1011,6 +1409,7 @@
     syncSpellsUI();
     syncActionsUI();
     syncInventoryUI();
+    syncEquipmentUI();
     syncFeaturesUI();
     syncHeartsUI();
     syncStaminaUI();

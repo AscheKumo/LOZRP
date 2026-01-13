@@ -478,6 +478,7 @@
             <button class="tab-btn" type="button" role="tab" aria-selected="true" data-tab="actions">Actions</button>
             <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="spells">Spells</button>
             <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="inventory">Inventory</button>
+            <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="equipment">Equipped</button>
             <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="features">Features</button>
             <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="background">Background</button>
             <button class="tab-btn" type="button" role="tab" aria-selected="false" data-tab="notes">Notes</button>
@@ -631,6 +632,81 @@
                 </label>
               </div>
 
+              <div class="entry-fields">
+                <div class="field">
+                  <span class="field-label">Equippable</span>
+                  <label class="switch" aria-label="Equippable">
+                    <input id="itemEquippable" type="checkbox" aria-label="Equippable" />
+                    <span class="switch-track" aria-hidden="true"></span>
+                  </label>
+                </div>
+                <div></div>
+                <div></div>
+              </div>
+
+              <div id="inventoryEquipFields" hidden>
+                <div class="entry-fields">
+                  <label class="field">
+                    <span class="field-label">Type</span>
+                    <select class="field-input" id="itemEquipType" aria-label="Equipment type">
+                      <option value="">Select…</option>
+                      <option value="weapon_melee">Weapon (Melee)</option>
+                      <option value="weapon_ranged">Weapon (Ranged)</option>
+                      <option value="ammo">Ammunition</option>
+                      <option value="armor_light">Armor (Light)</option>
+                      <option value="armor_medium">Armor (Medium)</option>
+                      <option value="armor_heavy">Armor (Heavy)</option>
+                      <option value="shield">Shield</option>
+                      <option value="gear">Adventuring Gear</option>
+                      <option value="tool">Tool</option>
+                      <option value="instrument">Instrument</option>
+                      <option value="wand">Wand / Focus</option>
+                      <option value="staff">Staff</option>
+                      <option value="rod">Rod</option>
+                      <option value="wondrous">Wondrous Item</option>
+                      <option value="ring">Ring</option>
+                      <option value="consumable">Consumable</option>
+                    </select>
+                  </label>
+                  <label class="field" data-equip-for="weapon_melee,weapon_ranged,ammo,armor_light,armor_medium,armor_heavy,shield,gear,tool,instrument,wand,staff,rod,wondrous,ring,consumable" hidden>
+                    <span class="field-label">Weight</span>
+                    <input class="field-input" id="itemWeight" placeholder="e.g., 3 lb" autocomplete="off" />
+                  </label>
+                  <label class="field" data-equip-for="armor_light,armor_medium,armor_heavy,shield" hidden>
+                    <span class="field-label">Armor Class</span>
+                    <input class="field-input" id="itemArmorClass" placeholder="e.g., 14" autocomplete="off" />
+                  </label>
+                </div>
+
+                <div class="entry-fields">
+                  <label class="field" data-equip-for="weapon_melee,weapon_ranged,ammo" hidden>
+                    <span class="field-label">Damage</span>
+                    <input class="field-input" id="itemDamage" placeholder="e.g., 1d8" autocomplete="off" />
+                  </label>
+                  <label class="field" data-equip-for="weapon_melee,weapon_ranged,ammo" hidden>
+                    <span class="field-label">Damage Type</span>
+                    <input class="field-input" id="itemDamageType" placeholder="e.g., slashing" autocomplete="off" />
+                  </label>
+                  <label class="field" data-equip-for="weapon_ranged,ammo,wand,staff,rod,gear" hidden>
+                    <span class="field-label">Range</span>
+                    <input class="field-input" id="itemRange" placeholder="e.g., 80/320" autocomplete="off" />
+                  </label>
+                </div>
+
+                <div class="entry-fields entry-fields-wide">
+                  <label class="field" data-equip-for="weapon_melee,weapon_ranged,ammo,armor_light,armor_medium,armor_heavy,shield,gear,tool,instrument,wand,staff,rod,wondrous,ring,consumable" hidden>
+                    <span class="field-label">Properties</span>
+                    <select class="field-input" id="itemPropertyPick" aria-label="Pick a property"></select>
+                    <div class="builder-actions builder-actions-inline" aria-label="Properties controls">
+                      <button class="btn btn-secondary builder-only" type="button" id="btnAddProperty" aria-label="Add property">Add</button>
+                      <button class="btn btn-secondary builder-only" type="button" id="btnClearProperties" aria-label="Clear properties">Clear</button>
+                    </div>
+                    <textarea class="field-input" id="itemProperties" rows="3" placeholder="Selected properties will appear here"></textarea>
+                  </label>
+                  <div></div>
+                </div>
+              </div>
+
               <div class="entry-fields entry-fields-wide">
                 <label class="field">
                   <span class="field-label">Notes</span>
@@ -647,6 +723,23 @@
 
             <!-- Persisted inventory data (JSON array). -->
             <textarea class="field-input" name="inventory" id="inventoryData" hidden></textarea>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="equipment" hidden>
+            <div class="entry-builder" aria-label="Equipped items">
+              <div class="entry-builder-head">
+                <div>
+                  <div class="entry-builder-title">Equipped</div>
+                  <div class="entry-builder-sub">Items marked Equippable can be equipped here.</div>
+                </div>
+              </div>
+
+              <div class="entry-builder-title">Equipped Now</div>
+              <div id="equipmentEquippedList" class="card-list" aria-label="Equipped items list"></div>
+
+              <div class="entry-builder-title">Available</div>
+              <div id="equipmentAvailableList" class="card-list" aria-label="Available equippable items list"></div>
+            </div>
           </div>
 
           <div class="tab-panel" role="tabpanel" data-panel="features" hidden>

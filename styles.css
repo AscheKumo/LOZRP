@@ -22,6 +22,10 @@
 
 * { box-sizing: border-box; }
 
+/* Ensure the HTML `hidden` attribute always wins, even on elements with
+  author-defined display rules (e.g., `.field { display: grid; }`). */
+[hidden] { display: none !important; }
+
 html, body {
   height: 100%;
 }
@@ -1217,6 +1221,70 @@ textarea.field-input {
   margin-top: 4px;
   font-size: 12px;
   color: rgba(255,255,255,0.62);
+}
+
+/* Switch (styled checkbox) */
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.switch-track {
+  width: 52px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.18);
+  position: relative;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.86);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.switch input:focus-visible + .switch-track {
+  border-color: rgba(101, 210, 122, 0.45);
+  box-shadow: 0 0 0 4px var(--focus);
+}
+
+.switch input:checked + .switch-track {
+  border-color: rgba(101, 210, 122, 0.50);
+  background: rgba(101, 210, 122, 0.14);
+}
+
+.switch input:checked + .switch-track::after {
+  transform: translateX(22px);
+  background: rgba(227, 195, 106, 0.92);
+}
+
+/* Small inline builder actions (used in Properties picker) */
+
+.builder-actions-inline {
+  margin-top: 10px;
+  justify-content: flex-start;
 }
 
 .entry-fields {
