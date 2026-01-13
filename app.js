@@ -1427,10 +1427,9 @@
       let cur = Math.max(0, toInt(staminaEl?.value));
       cur = Math.min(cur, max);
 
-      // Temp stamina only allowed if stamina is already at max.
-      const tempAllowed = max > 0 && cur >= max;
+      // Temp stamina is allowed at any time.
+      const tempAllowed = maxTempAllowed > 0;
       let temp = Math.max(0, toInt(staminaTempEl?.value));
-      if (!tempAllowed) temp = 0;
       temp = Math.min(temp, maxTempAllowed);
 
       if (staminaEl) {
@@ -1488,10 +1487,9 @@
       let cur = Math.max(0, toInt(manaEl?.value));
       cur = Math.min(cur, max);
 
-      // Temp mana only allowed if mana is already at max.
-      const tempAllowed = max > 0 && cur >= max;
+      // Temp mana is allowed at any time.
+      const tempAllowed = maxTempAllowed > 0;
       let temp = Math.max(0, toInt(manaTempEl?.value));
-      if (!tempAllowed) temp = 0;
       temp = Math.min(temp, maxTempAllowed);
 
       if (manaEl) {
@@ -1573,9 +1571,8 @@
         let cur = Math.max(0, toInt(curEl?.value));
         cur = Math.min(cur, max);
 
-        const tempAllowed = max > 0 && cur >= max;
+        const tempAllowed = maxTempAllowed > 0;
         let temp = Math.max(0, toInt(tempEl?.value));
-        if (!tempAllowed) temp = 0;
         temp = Math.min(temp, maxTempAllowed);
 
         if (curEl) {
