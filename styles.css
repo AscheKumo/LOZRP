@@ -9,6 +9,7 @@
   --muted: rgba(255, 255, 255, 0.68);
   --accent: #65d27a;
   --accent-2: #e3c36a;
+  --mana: #5aa9ff;
   --danger: #ff6b6b;
   --focus: rgba(101, 210, 122, 0.30);
 
@@ -456,6 +457,10 @@ textarea.field-input {
   gap: 12px;
 }
 
+.vital-block--hearts {
+  grid-column: 1 / -1;
+}
+
 .vital-block {
   border: 1px solid var(--stroke);
   border-radius: 16px;
@@ -522,6 +527,20 @@ textarea.field-input {
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.10);
   background: conic-gradient(var(--accent) var(--p1), rgba(255,255,255,0.14) 0);
+}
+
+/* Mana uses the same wheel but blue fill instead of green. */
+.stamina-wheel--mana::before,
+.stamina-wheel--mana::after {
+  background: conic-gradient(var(--mana) var(--p1), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--mana::before {
+  background: conic-gradient(var(--mana) var(--p2), rgba(255,255,255,0.14) 0);
+}
+
+.stamina-wheel--mana .stamina-wheel-inner {
+  background: linear-gradient(180deg, rgba(90, 169, 255, 0.18), rgba(0,0,0,0.16));
 }
 
 .stamina-wheel-inner {
@@ -727,13 +746,18 @@ textarea.field-input {
 
 .skill-row {
   display: grid;
-  grid-template-columns: 1fr 80px;
+  grid-template-columns: 1fr auto 80px;
   gap: 10px;
   align-items: center;
   padding: 8px 10px;
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 12px;
   background: rgba(0,0,0,0.14);
+}
+
+.skill-prof {
+  transform: scale(0.88);
+  transform-origin: center;
 }
 
 .skill-name {
