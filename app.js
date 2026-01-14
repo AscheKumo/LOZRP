@@ -1440,8 +1440,10 @@
       const max = Math.max(0, toInt(staminaMaxEl?.value));
 
       // Each ring represents 50% of max stamina.
-      const ringCap = Math.max(0, Math.floor(max * 0.5));
-      const maxTempAllowed = ringCap;
+      // Ensure ringCap isn't 0 for small max values (e.g. max=1).
+      const ringCap = max > 0 ? Math.max(1, Math.floor(max * 0.5)) : 0;
+      // Temp stamina can be up to 100% of max.
+      const maxTempAllowed = max;
 
       let cur = Math.max(0, toInt(staminaEl?.value));
       cur = Math.min(cur, max);
@@ -1466,7 +1468,7 @@
 
       const p1 = ringCap > 0 ? Math.max(0, Math.min(1, cur / ringCap)) : 0;
       const p2 = ringCap > 0 ? Math.max(0, Math.min(1, (cur - ringCap) / ringCap)) : 0;
-      const t = ringCap > 0 ? Math.max(0, Math.min(1, temp / ringCap)) : 0;
+      const t = maxTempAllowed > 0 ? Math.max(0, Math.min(1, temp / maxTempAllowed)) : 0;
 
       if (staminaWheelHeaderEl) {
         staminaWheelHeaderEl.style.setProperty("--p1", `${p1 * 100}%`);
@@ -1500,8 +1502,10 @@
       const max = Math.max(0, toInt(manaMaxEl?.value));
 
       // Each ring represents 50% of max mana.
-      const ringCap = Math.max(0, Math.floor(max * 0.5));
-      const maxTempAllowed = ringCap;
+      // Ensure ringCap isn't 0 for small max values (e.g. max=1).
+      const ringCap = max > 0 ? Math.max(1, Math.floor(max * 0.5)) : 0;
+      // Temp mana can be up to 100% of max.
+      const maxTempAllowed = max;
 
       let cur = Math.max(0, toInt(manaEl?.value));
       cur = Math.min(cur, max);
@@ -1526,7 +1530,7 @@
 
       const p1 = ringCap > 0 ? Math.max(0, Math.min(1, cur / ringCap)) : 0;
       const p2 = ringCap > 0 ? Math.max(0, Math.min(1, (cur - ringCap) / ringCap)) : 0;
-      const t = ringCap > 0 ? Math.max(0, Math.min(1, temp / ringCap)) : 0;
+      const t = maxTempAllowed > 0 ? Math.max(0, Math.min(1, temp / maxTempAllowed)) : 0;
 
       if (manaWheelHeaderEl) {
         manaWheelHeaderEl.style.setProperty("--p1", `${p1 * 100}%`);
@@ -1764,8 +1768,10 @@
         if (!curEl && !maxEl && !tempEl) return;
 
         const max = Math.max(0, toInt(maxEl?.value));
-        const ringCap = Math.max(0, Math.floor(max * 0.5));
-        const maxTempAllowed = ringCap;
+        // Ensure ringCap isn't 0 for small max values (e.g. max=1).
+        const ringCap = max > 0 ? Math.max(1, Math.floor(max * 0.5)) : 0;
+        // Temp can be up to 100% of max.
+        const maxTempAllowed = max;
 
         let cur = Math.max(0, toInt(curEl?.value));
         cur = Math.min(cur, max);
@@ -1791,7 +1797,7 @@
 
         const p1 = ringCap > 0 ? Math.max(0, Math.min(1, cur / ringCap)) : 0;
         const p2 = ringCap > 0 ? Math.max(0, Math.min(1, (cur - ringCap) / ringCap)) : 0;
-        const t = ringCap > 0 ? Math.max(0, Math.min(1, temp / ringCap)) : 0;
+        const t = maxTempAllowed > 0 ? Math.max(0, Math.min(1, temp / maxTempAllowed)) : 0;
 
         if (wheelHeaderEl) {
           wheelHeaderEl.style.setProperty("--p1", `${p1 * 100}%`);
