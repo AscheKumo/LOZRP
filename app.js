@@ -2019,6 +2019,16 @@
       { name: 'skill_survival', profName: 'skill_prof_survival', abilityKey: 'wisdom' },
     ];
 
+    const saveDefs = [
+      { name: 'save_courage', profName: 'save_prof_courage', abilityKey: 'courage' },
+      { name: 'save_agility', profName: 'save_prof_agility', abilityKey: 'agility' },
+      // "Sense" is stored under the wisdom key for backward compatibility.
+      { name: 'save_wisdom', profName: 'save_prof_wisdom', abilityKey: 'wisdom' },
+      { name: 'save_wit', profName: 'save_prof_wit', abilityKey: 'wit' },
+      { name: 'save_power', profName: 'save_prof_power', abilityKey: 'power' },
+      { name: 'save_spirit', profName: 'save_prof_spirit', abilityKey: 'spirit' },
+    ];
+
     const renderAbilitiesAndSkills = () => {
       /** @type {Record<string, number>} */
       const mods = {};
@@ -2045,6 +2055,18 @@
       const profBonus = toInt((profEl?.value ?? '').trim());
 
       for (const s of skillDefs) {
+        const totalInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${s.name}"]`));
+        const profToggle = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${s.profName}"]`));
+        if (!totalInput) continue;
+
+        const isProficient = Boolean(profToggle?.checked);
+        const total = (mods[s.abilityKey] ?? 0) + (isProficient ? profBonus : 0);
+        totalInput.readOnly = true;
+        totalInput.value = toSigned(total);
+      }
+
+      // Saving throws: 5e rules = ability mod + proficiency bonus (if proficient).
+      for (const s of saveDefs) {
         const totalInput = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${s.name}"]`));
         const profToggle = /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${s.profName}"]`));
         if (!totalInput) continue;
@@ -2082,7 +2104,7 @@
       if (name === "backstory" || name === "goals" || name === "core_belief") syncBackgroundUI();
       if (name === "map_choice") syncMapUI();
       if (name === "proficiency") syncSkillsUI();
-      if (name && (name.startsWith("score_") || name.startsWith("attr_") || name.startsWith("skill_prof_"))) syncSkillsUI();
+      if (name && (name.startsWith("score_") || name.startsWith("attr_") || name.startsWith("skill_prof_") || name.startsWith("save_prof_"))) syncSkillsUI();
     };
 
     for (const el of getAllFields()) {
