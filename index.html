@@ -1100,14 +1100,40 @@
           </div>
 
           <div class="tab-panel" role="tabpanel" data-panel="background" hidden>
-            <label class="field">
-              <span class="field-label">Backstory</span>
-              <textarea class="field-input" name="backstory" rows="9" placeholder="Where they came from and why they're traveling…"></textarea>
-            </label>
-            <label class="field">
-              <span class="field-label">Goals</span>
-              <textarea class="field-input" name="goals" rows="6" placeholder="Short-term and long-term goals…"></textarea>
-            </label>
+            <div class="panel-actions" role="group" aria-label="Background actions">
+              <button class="btn btn-secondary" type="button" id="btnBackgroundEdit">Edit</button>
+              <button class="btn" type="button" id="btnBackgroundDone" hidden>Done</button>
+            </div>
+
+            <div id="backgroundView" class="read-panel" aria-label="Background view">
+              <div class="read-field">
+                <div class="read-label">Core Belief</div>
+                <div class="read-value read-quote" id="coreBeliefDisplay">—</div>
+              </div>
+              <div class="read-field">
+                <div class="read-label">Background</div>
+                <div class="read-value" id="backgroundDisplay">—</div>
+              </div>
+              <div class="read-field">
+                <div class="read-label">Goals</div>
+                <div class="read-value" id="goalsDisplay">—</div>
+              </div>
+            </div>
+
+            <div id="backgroundEdit" aria-label="Background edit" hidden>
+              <label class="field">
+                <span class="field-label">Core Belief</span>
+                <input class="field-input" name="core_belief" placeholder="A one-line quote that sums up the character…" autocomplete="off" />
+              </label>
+              <label class="field">
+                <span class="field-label">Background</span>
+                <textarea class="field-input" name="backstory" rows="9" placeholder="Where they came from and why they're traveling…"></textarea>
+              </label>
+              <label class="field">
+                <span class="field-label">Goals</span>
+                <textarea class="field-input" name="goals" rows="6" placeholder="Short-term and long-term goals…"></textarea>
+              </label>
+            </div>
           </div>
 
           <div class="tab-panel" role="tabpanel" data-panel="notes" hidden>
@@ -1125,6 +1151,27 @@
               <span class="field-label">Secrets / Notes</span>
               <textarea class="field-input" name="notes" rows="10" placeholder="Anything you don't want to forget…"></textarea>
             </label>
+          </div>
+        </details>
+
+        <details class="card card--collapsible" open aria-label="Map">
+          <summary class="card-header compact card-summary">
+            <h2 class="card-title">Map</h2>
+            <p class="card-hint">Choose a map to display.</p>
+          </summary>
+
+          <label class="field">
+            <span class="field-label">Map</span>
+            <select class="field-input" name="map_choice" id="mapChoice" aria-label="Map choice">
+              <option value="" selected>None</option>
+              <option value="TheKingdomOfHyrule.jpg">Kingdom of Hyrule</option>
+              <option value="holodrum a land of seasons.png">Holodrum (Land of Seasons)</option>
+            </select>
+          </label>
+
+          <div class="map-preview" id="mapPreview" hidden>
+            <img class="map-img" id="mapImg" alt="Selected map" />
+            <div class="map-error" id="mapError" hidden>Map image couldn’t be loaded.</div>
           </div>
         </details>
 

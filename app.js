@@ -55,6 +55,12 @@
   /** @type {() => void} */
   let syncSkillsUI = () => {};
 
+  /** @type {() => void} */
+  let syncBackgroundUI = () => {};
+
+  /** @type {() => void} */
+  let syncMapUI = () => {};
+
   /** @type {HTMLFormElement | null} */
   const formLikeRoot = document.querySelector("main");
 
@@ -474,6 +480,8 @@
       syncLuckUI();
       syncAbilityUI();
       syncInspirationUI();
+      syncBackgroundUI();
+      syncMapUI();
       syncSkillsUI();
       if (!silent) setStatus("Loaded.");
     } catch {
@@ -501,6 +509,8 @@
     syncLuckUI();
     syncAbilityUI();
     syncInspirationUI();
+    syncBackgroundUI();
+    syncMapUI();
     syncSkillsUI();
     saveToStorage({ silent: true });
     setStatus("Reset.");
@@ -566,6 +576,8 @@
     syncLuckUI();
     syncInspirationUI();
     syncAbilityUI();
+    syncBackgroundUI();
+    syncMapUI();
     syncSkillsUI();
     saveToStorage({ silent: true });
     setStatus("Imported.");
@@ -665,6 +677,85 @@
     const initialTab = tabButtons.find((b) => b.getAttribute("aria-selected") === "true")?.dataset.tab
       ?? tabButtons[0]?.dataset.tab;
     if (initialTab) setActiveTab(initialTab);
+
+    // Background/Core Belief: view-only unless in edit mode.
+    const btnBackgroundEdit = document.getElementById("btnBackgroundEdit");
+    const btnBackgroundDone = document.getElementById("btnBackgroundDone");
+    const backgroundViewEl = document.getElementById("backgroundView");
+    const backgroundEditEl = document.getElementById("backgroundEdit");
+
+    const backgroundDisplayEl = document.getElementById("backgroundDisplay");
+    const goalsDisplayEl = document.getElementById("goalsDisplay");
+    const coreBeliefDisplayEl = document.getElementById("coreBeliefDisplay");
+
+    const backgroundInputEl = /** @type {HTMLTextAreaElement | null} */ (document.querySelector('textarea[name="backstory"]'));
+    const goalsInputEl = /** @type {HTMLTextAreaElement | null} */ (document.querySelector('textarea[name="goals"]'));
+    const coreBeliefInputEl = /** @type {HTMLInputElement | null} */ (document.querySelector('input[name="core_belief"]'));
+
+    let isBackgroundEditing = false;
+    const setBackgroundMode = (editing) => {
+      isBackgroundEditing = Boolean(editing);
+      if (backgroundViewEl) backgroundViewEl.hidden = isBackgroundEditing;
+      if (backgroundEditEl) backgroundEditEl.hidden = !isBackgroundEditing;
+      if (btnBackgroundEdit) btnBackgroundEdit.hidden = isBackgroundEditing;
+      if (btnBackgroundDone) btnBackgroundDone.hidden = !isBackgroundEditing;
+
+      if (isBackgroundEditing) {
+        (coreBeliefInputEl || backgroundInputEl || goalsInputEl)?.focus();
+      }
+    };
+
+    const norm = (s) => (s ?? "").toString().trim();
+
+    syncBackgroundUI = () => {
+      const bg = norm(backgroundInputEl?.value);
+      const goals = norm(goalsInputEl?.value);
+      const belief = norm(coreBeliefInputEl?.value);
+
+      if (backgroundDisplayEl) backgroundDisplayEl.textContent = bg || "—";
+      if (goalsDisplayEl) goalsDisplayEl.textContent = goals || "—";
+      if (coreBeliefDisplayEl) coreBeliefDisplayEl.textContent = belief || "—";
+
+      // Default to view mode unless user explicitly enters edit mode.
+      if (!isBackgroundEditing) setBackgroundMode(false);
+    };
+
+    btnBackgroundEdit?.addEventListener("click", () => {
+      syncBackgroundUI();
+      setBackgroundMode(true);
+    });
+
+    btnBackgroundDone?.addEventListener("click", () => {
+      setBackgroundMode(false);
+      syncBackgroundUI();
+      refreshPreview();
+      saveToStorage({ silent: true });
+      setStatus("Background updated.");
+    });
+
+    // Map chooser + preview
+    const mapChoiceEl = /** @type {HTMLSelectElement | null} */ (document.getElementById("mapChoice"));
+    const mapPreviewEl = document.getElementById("mapPreview");
+    const mapImgEl = /** @type {HTMLImageElement | null} */ (document.getElementById("mapImg"));
+    const mapErrorEl = document.getElementById("mapError");
+
+    syncMapUI = () => {
+      const choice = (mapChoiceEl?.value ?? "").trim();
+      const hasMap = Boolean(choice);
+      if (mapPreviewEl) mapPreviewEl.hidden = !hasMap;
+      if (mapErrorEl) mapErrorEl.hidden = true;
+      if (mapImgEl) {
+        mapImgEl.src = hasMap ? choice : "";
+        mapImgEl.alt = hasMap ? "Selected map" : "No map selected";
+      }
+    };
+
+    mapImgEl?.addEventListener("error", () => {
+      if (mapErrorEl) mapErrorEl.hidden = false;
+    });
+    mapImgEl?.addEventListener("load", () => {
+      if (mapErrorEl) mapErrorEl.hidden = true;
+    });
 
     // Portrait upload
     const profileUpload = /** @type {HTMLInputElement | null} */ (document.getElementById("profileUpload"));
@@ -1988,6 +2079,8 @@
       if (name === "luck" || name === "luck_max" || name === "luck_temp" || name === "luck_enabled") syncLuckUI();
       if (name === "inspiration") syncInspirationUI();
       if (name === "ability" || name === "ability_max" || name === "ability_temp" || name === "ability_enabled") syncAbilityUI();
+      if (name === "backstory" || name === "goals" || name === "core_belief") syncBackgroundUI();
+      if (name === "map_choice") syncMapUI();
       if (name === "proficiency") syncSkillsUI();
       if (name && (name.startsWith("score_") || name.startsWith("attr_") || name.startsWith("skill_prof_"))) syncSkillsUI();
     };
@@ -2015,6 +2108,8 @@
     syncLuckUI();
     syncAbilityUI();
     syncInspirationUI();
+    syncBackgroundUI();
+    syncMapUI();
     syncSkillsUI();
   }
 

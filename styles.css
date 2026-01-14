@@ -136,6 +136,71 @@ body {
   border-top: 1px solid var(--stroke);
 }
 
+.panel-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.read-panel {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  background: rgba(0,0,0,0.14);
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.read-field {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(0,0,0,0.12);
+  padding: 10px;
+}
+
+.read-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.62);
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+}
+
+.read-value {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.88);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.read-quote {
+  font-style: italic;
+}
+
+.map-preview {
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  background: rgba(0,0,0,0.14);
+  overflow: hidden;
+}
+
+.map-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.map-error {
+  padding: 10px 12px;
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.10);
+}
+
 main.wrap {
   padding: 0;
 }
