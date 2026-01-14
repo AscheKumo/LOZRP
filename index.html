@@ -540,6 +540,11 @@
             </div>
           </div>
 
+          <div class="rest-actions" role="group" aria-label="Rest actions">
+            <button class="btn btn-secondary" type="button" id="btnShortRest">Short Rest</button>
+            <button class="btn" type="button" id="btnLongRest">Long Rest</button>
+          </div>
+
           <div class="combat-meters" aria-label="Meters">
             <div class="combat-meter-grid">
               <div class="vital-block combat-meter" aria-label="Stamina meter" title="Stamina: action economy.">
@@ -1142,6 +1147,26 @@
           </label>
         </details>
       </aside>
+    </div>
+
+    <div class="overlay" id="shortRestOverlay" role="dialog" aria-modal="true" aria-label="Short rest meter choice" hidden>
+      <div class="overlay-backdrop" id="shortRestBackdrop" aria-hidden="true"></div>
+      <div class="overlay-panel card" aria-label="Choose meter">
+        <div class="card-header compact">
+          <h2 class="card-title">Short Rest</h2>
+          <p class="card-hint">Choose one meter to regain +1.</p>
+        </div>
+
+        <div class="overlay-actions" role="group" aria-label="Choose meter">
+          <button class="btn" type="button" id="btnShortRestGrit">Grit +1</button>
+          <button class="btn" type="button" id="btnShortRestTalent">Talent +1</button>
+          <button class="btn" type="button" id="btnShortRestLuck">Luck +1</button>
+        </div>
+
+        <div class="sheet-actions" role="group" aria-label="Overlay actions">
+          <button class="btn btn-secondary" type="button" id="btnShortRestCancel">Cancel</button>
+        </div>
+      </div>
     </div>
 
     <footer class="site-footer" role="contentinfo">

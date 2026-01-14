@@ -758,6 +758,7 @@
           collapsed = !collapsed;
           body.hidden = collapsed;
           btnToggle.textContent = collapsed ? "Expand" : "Collapse";
+          if (typeof opts?.onCollapsedChange === "function") opts.onCollapsedChange(collapsed);
         });
         actions.appendChild(btnToggle);
       }
@@ -943,6 +944,7 @@
         name: (i?.name ?? "").trim(),
         qty: (i?.qty ?? "").trim(),
         category: (i?.category ?? "").trim(),
+        collapsed: Boolean(i?.collapsed),
         equippable,
         equipped,
         equipType: (i?.equipType ?? "").trim(),
@@ -973,6 +975,7 @@
         name,
         qty: "",
         category: "",
+        collapsed: false,
         equippable: false,
         equipped: false,
         equipType: "",
@@ -1025,6 +1028,7 @@
           name,
           qty: "",
           category: "",
+          collapsed: false,
           equippable: false,
           equipped: false,
           equipType: "",
@@ -1095,12 +1099,20 @@
           setStatus(items[idx].equipped ? "Equipped." : "Unequipped.");
         });
 
+        const onCollapsedChange = (collapsed) => {
+          const items = readInventoryItems();
+          const idx = Number.isFinite(inventoryIndex) ? inventoryIndex : -1;
+          if (idx < 0 || !items[idx]) return;
+          items[idx].collapsed = Boolean(collapsed);
+          writeInventoryItems(items);
+        };
+
         return makeCard({
           name: i?.name,
           badge: badge || undefined,
           meta,
           wide,
-        }, handlers, { collapsible: true, extraActions: [btnEquipToggle] });
+        }, handlers, { collapsible: true, defaultCollapsed: Boolean(i?.collapsed), onCollapsedChange, extraActions: [btnEquipToggle] });
       },
       onChange: scheduleAutosave,
       onEditItem: () => {
@@ -1163,12 +1175,19 @@
           if (it?.notes) wide.push(["Notes", it.notes]);
           if (it?.tags) wide.push(["Tags", it.tags]);
 
+          const onCollapsedChange = (collapsed) => {
+            const next = readInventoryItems();
+            if (!next[idx]) return;
+            next[idx].collapsed = Boolean(collapsed);
+            writeInventoryItems(next);
+          };
+
           target.appendChild(makeCard({
             name: it?.name,
             badge: isEquipped ? "Equipped" : "Available",
             meta,
             wide,
-          }, { onEdit: () => {}, onDelete: () => {} }, { collapsible: true, showEdit: false, showDelete: false, extraActions: [btn] }));
+          }, { onEdit: () => {}, onDelete: () => {} }, { collapsible: true, defaultCollapsed: Boolean(it?.collapsed), onCollapsedChange, showEdit: false, showDelete: false, extraActions: [btn] }));
         }
       };
 
@@ -1520,6 +1539,186 @@
     };
 
     syncManaUI = renderMana;
+
+    // Rest actions
+    const btnShortRest = document.getElementById("btnShortRest");
+    const btnLongRest = document.getElementById("btnLongRest");
+
+    const shortRestOverlayEl = document.getElementById("shortRestOverlay");
+    const shortRestBackdropEl = document.getElementById("shortRestBackdrop");
+    const btnShortRestGrit = document.getElementById("btnShortRestGrit");
+    const btnShortRestTalent = document.getElementById("btnShortRestTalent");
+    const btnShortRestLuck = document.getElementById("btnShortRestLuck");
+    const btnShortRestCancel = document.getElementById("btnShortRestCancel");
+
+    const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+
+    const setAndSyncAfterRest = (message) => {
+      syncHeartsUI();
+      syncStaminaUI();
+      syncManaUI();
+      syncTalentUI();
+      syncGritUI();
+      syncLuckUI();
+      syncInspirationUI();
+      syncAbilityUI();
+      refreshPreview();
+      const ok = saveToStorage({ silent: true });
+      setStatus(message);
+      return ok;
+    };
+
+    /** @type {null | (() => void)} */
+    let closeShortRestOverlay = null;
+
+    const openShortRestOverlay = ({ allowGrit, allowTalent, allowLuck, onPick }) => {
+      if (!shortRestOverlayEl) {
+        onPick(null);
+        return;
+      }
+
+      const controller = new AbortController();
+      const { signal } = controller;
+
+      const focusFirst = () => {
+        const first = /** @type {HTMLButtonElement | null} */ (
+          (allowGrit && btnShortRestGrit) || (allowTalent && btnShortRestTalent) || (allowLuck && btnShortRestLuck) || btnShortRestCancel
+        );
+        first?.focus();
+      };
+
+      const cleanup = () => {
+        controller.abort();
+        closeShortRestOverlay = null;
+      };
+
+      const finish = (choice) => {
+        if (shortRestOverlayEl) shortRestOverlayEl.setAttribute("hidden", "");
+        cleanup();
+        onPick(choice);
+      };
+
+      const onKeyDown = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          finish(null);
+        }
+      };
+
+      closeShortRestOverlay = () => finish(null);
+
+      if (btnShortRestGrit) btnShortRestGrit.disabled = !allowGrit;
+      if (btnShortRestTalent) btnShortRestTalent.disabled = !allowTalent;
+      if (btnShortRestLuck) btnShortRestLuck.disabled = !allowLuck;
+
+      btnShortRestGrit?.addEventListener("click", () => finish("grit"), { signal });
+      btnShortRestTalent?.addEventListener("click", () => finish("talent"), { signal });
+      btnShortRestLuck?.addEventListener("click", () => finish("luck"), { signal });
+      btnShortRestCancel?.addEventListener("click", () => finish(null), { signal });
+      shortRestBackdropEl?.addEventListener("click", () => finish(null), { signal });
+
+      document.addEventListener("keydown", onKeyDown, { capture: true, signal });
+      shortRestOverlayEl.removeAttribute("hidden");
+      window.setTimeout(focusFirst, 0);
+    };
+
+    const getMeterEls = (key) => {
+      return {
+        enabledEl: /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${key}_enabled"]`)),
+        curEl: /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${key}"]`)),
+        maxEl: /** @type {HTMLInputElement | null} */ (document.querySelector(`input[name="${key}_max"]`)),
+      };
+    };
+
+    const addToMeter = (key, delta) => {
+      const { enabledEl, curEl, maxEl } = getMeterEls(key);
+      const enabled = enabledEl ? Boolean(enabledEl.checked) : true;
+      if (!enabled || !curEl || !maxEl) return;
+      const max = Math.max(0, toInt(maxEl.value));
+      const cur = Math.max(0, toInt(curEl.value));
+      curEl.value = String(clamp(cur + delta, 0, max));
+    };
+
+    const setMeterToMax = (curEl, maxEl) => {
+      if (!curEl || !maxEl) return;
+      const max = Math.max(0, toInt(maxEl.value));
+      curEl.value = String(clamp(max, 0, max));
+    };
+
+    btnLongRest?.addEventListener("click", () => {
+      // Long Rest: restore all relevant stats to max.
+      setMeterToMax(hpEl, hpMaxEl);
+      setMeterToMax(staminaEl, staminaMaxEl);
+      setMeterToMax(manaEl, manaMaxEl);
+
+      // Optional meters: only restore those enabled.
+      for (const key of ["ability", "grit", "talent", "luck"]) {
+        const { enabledEl, curEl, maxEl } = getMeterEls(key);
+        if (enabledEl && !enabledEl.checked) continue;
+        setMeterToMax(curEl, maxEl);
+      }
+
+      setAndSyncAfterRest("Long Rest applied.");
+    });
+
+    btnShortRest?.addEventListener("click", () => {
+      // Short Rest:
+      // - Stamina to max
+      // - +25% of mana max
+      // - +25% of ability max
+      // - +1 heart if not full
+      // - Choose one: +1 Grit/Talent/Luck
+
+      // Stamina to max
+      setMeterToMax(staminaEl, staminaMaxEl);
+
+      // Mana +25% of max
+      if (manaEl && manaMaxEl) {
+        const max = Math.max(0, toInt(manaMaxEl.value));
+        const cur = Math.max(0, toInt(manaEl.value));
+        const gain = Math.ceil(max * 0.25);
+        manaEl.value = String(clamp(cur + gain, 0, max));
+      }
+
+      // Ability +25% of max (only if enabled)
+      {
+        const { enabledEl, curEl, maxEl } = getMeterEls("ability");
+        if (enabledEl?.checked && curEl && maxEl) {
+          const max = Math.max(0, toInt(maxEl.value));
+          const cur = Math.max(0, toInt(curEl.value));
+          const gain = Math.ceil(max * 0.25);
+          curEl.value = String(clamp(cur + gain, 0, max));
+        }
+      }
+
+      // +1 heart if not full
+      if (hpEl && hpMaxEl) {
+        const max = Math.max(0, toInt(hpMaxEl.value));
+        const cur = Math.max(0, toInt(hpEl.value));
+        if (cur < max) hpEl.value = String(clamp(cur + 1, 0, max));
+      }
+
+      const gritEnabled = Boolean(getMeterEls("grit").enabledEl?.checked);
+      const talentEnabled = Boolean(getMeterEls("talent").enabledEl?.checked);
+      const luckEnabled = Boolean(getMeterEls("luck").enabledEl?.checked);
+      const anyChoice = gritEnabled || talentEnabled || luckEnabled;
+
+      if (!anyChoice) {
+        setAndSyncAfterRest("Short Rest applied.");
+        return;
+      }
+
+      openShortRestOverlay({
+        allowGrit: gritEnabled,
+        allowTalent: talentEnabled,
+        allowLuck: luckEnabled,
+        onPick: (choice) => {
+          if (choice) addToMeter(choice, 1);
+          setAndSyncAfterRest("Short Rest applied.");
+          btnShortRest?.focus();
+        },
+      });
+    });
 
     const createOptionalMeter = ({
       key,
